@@ -1,6 +1,6 @@
 module main_memory #(
     parameter MEMORY_HEX   = "",
-    parameter MEMORY_DEPTH = 1024
+    parameter MEMORY_BYTES = 1024
 ) (
     input clk,
 
@@ -25,8 +25,9 @@ module main_memory #(
     output reg [          31:0] wb_rd_data
     // endregion control by [STAGE 4 MEMORY]
 );
-  localparam ADDR_WIDTH = $clog2(MEMORY_DEPTH);
-  reg [31:0] memory[MEMORY_DEPTH/4-1:0];
+  localparam ADDR_WIDTH = $clog2(MEMORY_BYTES);
+  localparam MEMORY_DEPTH = MEMORY_BYTES/4;
+  reg [31:0] memory[0:MEMORY_DEPTH-1];
 
   assign wb_stall = 0;  // never stall
 
