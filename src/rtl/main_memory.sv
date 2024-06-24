@@ -19,14 +19,14 @@ module main_memory #(
     input                       wb_wr_en,
     input      [ADDR_WIDTH-1:0] wb_addr,
     input      [          31:0] wb_wr_data,
-    input      [           3:0] wb_sel,
+    input      [           3:0] wb_wr_sel,
     output reg                  wb_ack,
     output                      wb_stall,
     output reg [          31:0] wb_rd_data
     // endregion control by [STAGE 4 MEMORY]
 );
   localparam ADDR_WIDTH = $clog2(MEMORY_BYTES);
-  localparam MEMORY_DEPTH = MEMORY_BYTES/4;
+  localparam MEMORY_DEPTH = MEMORY_BYTES / 4;
   reg [31:0] memory[0:MEMORY_DEPTH-1];
 
   assign wb_stall = 0;  // never stall
@@ -51,10 +51,10 @@ module main_memory #(
 
   always @(posedge clk) begin : sync_write_process
     if (wb_wr_en && wb_stb && wb_cyc) begin
-      if (wb_sel[0]) memory[wb_addr[ADDR_WIDTH-1:2]][7:0] <= wb_wr_data[7:0];
-      if (wb_sel[1]) memory[wb_addr[ADDR_WIDTH-1:2]][15:8] <= wb_wr_data[15:8];
-      if (wb_sel[2]) memory[wb_addr[ADDR_WIDTH-1:2]][23:16] <= wb_wr_data[23:16];
-      if (wb_sel[3]) memory[wb_addr[ADDR_WIDTH-1:2]][31:24] <= wb_wr_data[31:24];
+      if (wb_wr_sel[0]) memory[wb_addr[ADDR_WIDTH-1:2]][7:0] <= wb_wr_data[7:0];
+      if (wb_wr_sel[1]) memory[wb_addr[ADDR_WIDTH-1:2]][15:8] <= wb_wr_data[15:8];
+      if (wb_wr_sel[2]) memory[wb_addr[ADDR_WIDTH-1:2]][23:16] <= wb_wr_data[23:16];
+      if (wb_wr_sel[3]) memory[wb_addr[ADDR_WIDTH-1:2]][31:24] <= wb_wr_data[31:24];
     end
   end
 

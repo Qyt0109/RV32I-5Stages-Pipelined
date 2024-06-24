@@ -28,7 +28,7 @@ module soc #(
   wire [31:0] wb_wr_data;  // data to be stored to memory
 
   // byte strobe for write (1 = write the byte) {byte3, byte2, byte1, byte0}
-  wire [ 3:0] wb_sel;
+  wire [ 3:0] wb_wr_sel;
 
   // ack by data memory (high when data to be read is ready or when write data is already written)
   wire        wb_ack;
@@ -55,7 +55,7 @@ module soc #(
       .wb_wr_en  (wb_wr_en),
       .wb_addr   (wb_addr),
       .wb_wr_data(wb_wr_data),
-      .wb_sel    (wb_sel),
+      .wb_wr_sel (wb_wr_sel),
       .wb_ack    (wb_ack),
       .wb_stall  (wb_stall),
       .wb_rd_data(wb_rd_data)

@@ -21,7 +21,7 @@ module main_memory_tb ();
     wb_wr_en = 0;
     wb_addr = 0;
     wb_wr_data = 0;
-    wb_sel = 0;
+    wb_wr_sel = 0;
   end
 
   task automatic instruction_read;
@@ -32,9 +32,10 @@ module main_memory_tb ();
       instr_stb  <= 1;
       instr_addr <= read_from_address;
       @(posedge clk);
-      #(CLK_PERIOD_QUAR) match = (instr == hex_file_data[read_from_address[ADDR_WIDTH-1:2]]);
+      #(CLK_PERIOD_QUAR);
+      match = (instr == hex_file_data[read_from_address[ADDR_WIDTH-1:2]]);
       $display(  //
-          "[%s] Instruction %h at address %h, expected %h",  //
+          "[%s] Read Instruction %h from address %h, expected %h",  //
           (match) ? "  OK  " : "FAILED",  //
           instr,  //
           instr_addr,  //
@@ -46,18 +47,25 @@ module main_memory_tb ();
 
   task automatic data_read;
     input [31:0] read_from_address;
+    input [31:0] expected_data;
+    output match;
     begin
       @(negedge clk);
-      wb_stb   <= 1;
-      wb_cyc   <= 1;
-      wb_wr_en <= 1;
-      wb_addr  <= read_from_address;
+      wb_stb  <= 1;
+      wb_cyc  <= 1;
+      wb_addr <= read_from_address;
       @(posedge clk);
       #(CLK_PERIOD_QUAR);
-      $display("Data %h at address %h", wb_rd_data, wb_addr);
-      wb_stb   <= 0;
-      wb_cyc   <= 0;
-      wb_wr_en <= 0;
+      match = (wb_rd_data == expected_data);
+      $display(  //
+          "[%s] Read Data %h from address %h, expected %h",  //
+          (match) ? "  OK  " : "FAILED",  //
+          wb_rd_data,  //
+          wb_addr,  //
+          expected_data  //
+      );
+      wb_stb <= 0;
+      wb_cyc <= 0;
     end
   endtask  //automatic
 
@@ -65,6 +73,22 @@ module main_memory_tb ();
     input [31:0] write_to_address;
     input [31:0] write_data;
     input [3:0] write_select;
+    begin
+      @(negedge clk);
+      wb_wr_en   <= 1;
+      wb_stb     <= 1;
+      wb_cyc     <= 1;
+      wb_addr    <= write_to_address;
+      wb_wr_data <= write_data;
+      wb_wr_sel  <= write_select;
+      wb_addr    <= write_to_address;
+      @(posedge clk);
+      #(CLK_PERIOD_QUAR);
+      $display("Write Data %h to address %h", wb_wr_data, wb_addr);
+      wb_wr_en <= 0;
+      wb_stb   <= 0;
+      wb_cyc   <= 0;
+    end
   endtask  //automatic
 
   reg [31:0] hex_file_data[0:MEMORY_DEPTH-1];
@@ -72,25 +96,50 @@ module main_memory_tb ();
 
   task automatic test_instruction_read;
     integer address;
-    integer errors;
+    integer errors = 0;
+    integer tests = 0;
     reg match;
     begin
-      errors = 0;
       for (address = 0; address < MEMORY_DEPTH; address = address + 1) begin
         instruction_read(address << 2, match);
         if (!match) errors = errors + 1;
+        tests = tests + 1;
       end
       $display(  //
-          "[%s] Done test_instruction_read with %d\/%d errors",  //
+          "\n[%s] Done test_instruction_read with %d\/%d errors",  //
           (errors == 0) ? "  OK  " : "FAILED",  //
           errors,  //
-          MEMORY_DEPTH  //
+          tests  //
+      );
+    end
+  endtask  //automatic
+
+  task automatic test_data_write_read;
+    integer address;
+    integer errors = 0;
+    integer tests = 0;
+    reg [31:0] random_data;
+    reg match;
+    begin
+      for (address = 'h10 << 2; address < MEMORY_DEPTH; address = address + 1) begin
+        random_data = $urandom;
+        data_write(address, random_data, 4'b1111);
+        data_read(address, random_data, match);
+        if (!match) errors = errors + 1;
+        tests = tests + 1;
+      end
+      $display(  //
+          "\n[%s] Done test_data_write_read with %d\/%d errors",  //
+          (errors == 0) ? "  OK  " : "FAILED",  //
+          errors,  //
+          tests  //
       );
     end
   endtask  //automatic
 
   initial begin
     test_instruction_read();
+    test_data_write_read();
 
     #(CLK_PERIOD * 10);
     $finish;
@@ -113,7 +162,7 @@ module main_memory_tb ();
   reg         wb_wr_en;
   reg  [31:0] wb_addr;
   reg  [31:0] wb_wr_data;
-  reg  [ 3:0] wb_sel;
+  reg  [ 3:0] wb_wr_sel;
   wire        wb_ack;
   wire        wb_stall;
   wire [31:0] wb_rd_data;
@@ -134,7 +183,7 @@ module main_memory_tb ();
       .wb_wr_en  (wb_wr_en),
       .wb_addr   (wb_addr),
       .wb_wr_data(wb_wr_data),
-      .wb_sel    (wb_sel),
+      .wb_wr_sel (wb_wr_sel),
       .wb_ack    (wb_ack),
       .wb_stall  (wb_stall),
       .wb_rd_data(wb_rd_data)
