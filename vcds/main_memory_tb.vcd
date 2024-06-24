@@ -1,0 +1,126 @@
+$date
+	Mon Jun 24 18:29:01 2024
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module main_memory_tb $end
+$var wire 1 ! wb_stall $end
+$var wire 32 " wb_rd_data [31:0] $end
+$var wire 1 # wb_ack $end
+$var wire 1 $ instr_ack $end
+$var wire 32 % instr [31:0] $end
+$var parameter 32 & CLK_PERIOD $end
+$var parameter 32 ' CLK_PERIOD_HALF $end
+$var reg 1 ( clk $end
+$var reg 32 ) instr_addr [31:0] $end
+$var reg 1 * instr_stb $end
+$var reg 32 + wb_addr [31:0] $end
+$var reg 1 , wb_cyc $end
+$var reg 4 - wb_sel [3:0] $end
+$var reg 1 . wb_stb $end
+$var reg 32 / wb_wr_data [31:0] $end
+$var reg 1 0 wb_wr_en $end
+$scope module main_memory_inst $end
+$var wire 1 ( clk $end
+$var wire 10 1 instr_addr [9:0] $end
+$var wire 1 * instr_stb $end
+$var wire 10 2 wb_addr [9:0] $end
+$var wire 1 , wb_cyc $end
+$var wire 4 3 wb_sel [3:0] $end
+$var wire 1 ! wb_stall $end
+$var wire 1 . wb_stb $end
+$var wire 32 4 wb_wr_data [31:0] $end
+$var wire 1 0 wb_wr_en $end
+$var parameter 32 5 ADDR_WIDTH $end
+$var parameter 32 6 MEMORY_DEPTH $end
+$var parameter 112 7 MEMORY_HEX $end
+$var reg 32 8 instr [31:0] $end
+$var reg 1 $ instr_ack $end
+$var reg 1 # wb_ack $end
+$var reg 32 9 wb_rd_data [31:0] $end
+$scope begin sync_read_process $end
+$upscope $end
+$scope begin sync_write_process $end
+$upscope $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b10111000101111011010000110010101111000011100110010111101100001011001000110010000101110011010000110010101111000 7
+b10000000000 6
+b1010 5
+b101 '
+b1010 &
+$end
+#0
+$dumpvars
+bx 9
+b0 8
+b0 4
+b0 3
+b0 2
+b0 1
+00
+b0 /
+0.
+b0 -
+0,
+b0 +
+0*
+b0 )
+0(
+b0 %
+0$
+0#
+bx "
+0!
+$end
+#5000
+b110010000000000000010010011 "
+b110010000000000000010010011 9
+b110010000000000000010010011 %
+b110010000000000000010010011 8
+1(
+#10000
+0(
+#15000
+1(
+#20000
+0(
+#25000
+1(
+#30000
+0(
+#35000
+1(
+#40000
+0(
+#45000
+1(
+#50000
+0(
+#55000
+1(
+#60000
+0(
+#65000
+1(
+#70000
+0(
+#75000
+1(
+#80000
+0(
+#85000
+1(
+#90000
+0(
+#95000
+1(
+#100000
+0(

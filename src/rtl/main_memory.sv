@@ -6,8 +6,8 @@ module main_memory #(
 
     // region control by [STAGE 1 FETCH]
     // Instruction Memory
-    input      [ADDR_WIDTH-1:0] instr_addr,
-    output reg [          31:0] instr,
+    input      [ADDR_WIDTH-1:0] instr_addr,  // instruction memory address
+    output reg [          31:0] instr,       // instruction from memory
     input                       instr_stb,   // request for instruction
     output reg                  instr_ack,   // ack
     // endregion control by [STAGE 1 FETCH]
@@ -44,16 +44,16 @@ module main_memory #(
     instr_ack  <= instr_stb;  // ack go high next cycle after receiving stb (request)
     instr      <= memory[instr_addr>>2];  // read instruction
 
-    wb_ack     <= wb_stb && wb_cyc;
+    wb_ack     <= (wb_stb && wb_cyc);  // ack go high next cycle after receiving stb (request)
     wb_rd_data <= memory[wb_addr[ADDR_WIDTH-1:2]];  // read data
   end
 
   always @(posedge clk) begin : sync_write_process
     if (wb_wr_en && wb_stb && wb_cyc) begin
-      if (wb_sel[0]) memory[wb_addr[ADDR_WIDTH-1:2][7:0]] <= wb_wr_data[7:0];
-      if (wb_sel[1]) memory[wb_addr[ADDR_WIDTH-1:2][15:8]] <= wb_wr_data[15:8];
-      if (wb_sel[2]) memory[wb_addr[ADDR_WIDTH-1:2][23:16]] <= wb_wr_data[23:16];
-      if (wb_sel[3]) memory[wb_addr[ADDR_WIDTH-1:2][31:24]] <= wb_wr_data[31:24];
+      if (wb_sel[0]) memory[wb_addr[ADDR_WIDTH-1:2]][7:0] <= wb_wr_data[7:0];
+      if (wb_sel[1]) memory[wb_addr[ADDR_WIDTH-1:2]][15:8] <= wb_wr_data[15:8];
+      if (wb_sel[2]) memory[wb_addr[ADDR_WIDTH-1:2]][23:16] <= wb_wr_data[23:16];
+      if (wb_sel[3]) memory[wb_addr[ADDR_WIDTH-1:2]][31:24] <= wb_wr_data[31:24];
     end
   end
 
