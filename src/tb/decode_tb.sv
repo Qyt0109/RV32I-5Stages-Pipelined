@@ -6,8 +6,10 @@ module decode_tb ();
 
   localparam PC_RESET = 0;
 
-  parameter MEMORY_HEX = "./hexs/add.hex";
-  parameter MEMORY_BYTES = 1024;
+  localparam TEST_INSTRUCTION = 32'h09600113;
+
+  parameter MEMORY_HEX = "";
+  parameter MEMORY_BYTES = 1024 * 4;
   localparam ADDR_WIDTH = $clog2(MEMORY_BYTES);
   localparam MEMORY_DEPTH = MEMORY_BYTES / 4;
 
@@ -22,21 +24,23 @@ module decode_tb ();
   always #(CLK_PERIOD_HALF) clk = !clk;
 
   initial begin
-    clk                 <= 0;
-    rst                 <= 0;
-    writeback_change_pc <= 0;
-    writeback_next_pc   <= 0;
-    execute_change_pc   <= 0;
-    execute_next_pc     <= 0;
+    clk                        <= 0;
+    rst                        <= 0;
+    writeback_change_pc        <= 0;
+    writeback_next_pc          <= 0;
+    execute_change_pc          <= 0;
+    execute_next_pc            <= 0;
+    main_memory_inst.memory[0] <= TEST_INSTRUCTION;
   end
 
   initial begin
     reset(1);
-    instruction_fetch(2);
-    test_execute_change_pc('h10);
-    instruction_fetch(3);
-    test_writeback_change_pc('h18);
     instruction_fetch(5);
+    // instruction_fetch(2);
+    // test_execute_change_pc('h10);
+    // instruction_fetch(3);
+    // test_writeback_change_pc('h18);
+    // instruction_fetch(5);
     $finish;
   end
 
