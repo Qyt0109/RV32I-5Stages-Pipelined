@@ -1,0 +1,3 @@
+module decode ();
+
+endmodule

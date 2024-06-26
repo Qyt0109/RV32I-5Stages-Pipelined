@@ -1,0 +1,494 @@
+$date
+	Wed Jun 26 16:56:49 2024
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module fetch_tb $end
+$var wire 1 ! wb_stall $end
+$var wire 32 " wb_rd_data [31:0] $end
+$var wire 1 # wb_ack $end
+$var wire 32 $ pc [31:0] $end
+$var wire 1 % next_clk_en $end
+$var wire 1 & main_memory_instr_req $end
+$var wire 32 ' main_memory_instr_addr [31:0] $end
+$var wire 1 ( main_memory_instr_ack $end
+$var wire 32 ) main_memory_instr [31:0] $end
+$var wire 32 * fetch_instr [31:0] $end
+$var parameter 32 + ADDR_WIDTH $end
+$var parameter 32 , CLK_PERIOD $end
+$var parameter 32 - CLK_PERIOD_HALF $end
+$var parameter 32 . CLK_PERIOD_QUAR $end
+$var parameter 32 / MEMORY_BYTES $end
+$var parameter 32 0 MEMORY_DEPTH $end
+$var parameter 112 1 MEMORY_HEX $end
+$var parameter 32 2 PC_RESET $end
+$var reg 1 3 clk $end
+$var reg 1 4 execute_change_pc $end
+$var reg 32 5 execute_next_pc [31:0] $end
+$var reg 1 6 flush $end
+$var reg 1 7 rst $end
+$var reg 1 8 stall $end
+$var reg 32 9 wb_addr [31:0] $end
+$var reg 1 : wb_cyc $end
+$var reg 1 ; wb_stb $end
+$var reg 32 < wb_wr_data [31:0] $end
+$var reg 1 = wb_wr_en $end
+$var reg 4 > wb_wr_sel [3:0] $end
+$var reg 1 ? writeback_change_pc $end
+$var reg 32 @ writeback_next_pc [31:0] $end
+$scope module fetch_inst $end
+$var wire 1 A change_pc $end
+$var wire 1 3 clk $end
+$var wire 1 B disable_next_stage $end
+$var wire 1 C enable_update_registers $end
+$var wire 1 4 execute_change_pc $end
+$var wire 32 D execute_next_pc [31:0] $end
+$var wire 1 6 flush $end
+$var wire 1 & main_memory_instr_req $end
+$var wire 1 7 rst $end
+$var wire 1 8 stall $end
+$var wire 1 E stall_bit $end
+$var wire 1 ? writeback_change_pc $end
+$var wire 32 F writeback_next_pc [31:0] $end
+$var wire 1 ( main_memory_instr_ack $end
+$var wire 32 G main_memory_instr [31:0] $end
+$var parameter 32 H PC_RESET $end
+$var reg 32 I fetch_instr [31:0] $end
+$var reg 32 J main_memory_instr_addr [31:0] $end
+$var reg 1 % next_clk_en $end
+$var reg 32 K pc [31:0] $end
+$var reg 32 L prev_pc [31:0] $end
+$var reg 1 M r_clk_en $end
+$var reg 1 N r_clk_en_d $end
+$var reg 32 O r_main_memory_instr_addr [31:0] $end
+$var reg 1 P r_stall $end
+$var reg 32 Q stalled_instr [31:0] $end
+$var reg 32 R stalled_pc [31:0] $end
+$upscope $end
+$scope module main_memory_inst $end
+$var wire 1 3 clk $end
+$var wire 10 S instr_addr [9:0] $end
+$var wire 1 & instr_stb $end
+$var wire 10 T wb_addr [9:0] $end
+$var wire 1 : wb_cyc $end
+$var wire 1 ! wb_stall $end
+$var wire 1 ; wb_stb $end
+$var wire 32 U wb_wr_data [31:0] $end
+$var wire 1 = wb_wr_en $end
+$var wire 4 V wb_wr_sel [3:0] $end
+$var parameter 32 W ADDR_WIDTH $end
+$var parameter 32 X MEMORY_BYTES $end
+$var parameter 32 Y MEMORY_DEPTH $end
+$var parameter 112 Z MEMORY_HEX $end
+$var reg 32 [ instr [31:0] $end
+$var reg 1 ( instr_ack $end
+$var reg 1 # wb_ack $end
+$var reg 32 \ wb_rd_data [31:0] $end
+$scope begin sync_read_process $end
+$upscope $end
+$scope begin sync_write_process $end
+$upscope $end
+$upscope $end
+$scope task instruction_fetch $end
+$upscope $end
+$scope task reset $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+b10111000101111011010000110010101111000011100110010111101100001011001000110010000101110011010000110010101111000 Z
+b100000000 Y
+b10000000000 X
+b1010 W
+b1000000000000 H
+b1000000000000 2
+b10111000101111011010000110010101111000011100110010111101100001011001000110010000101110011010000110010101111000 1
+b100000000 0
+b10000000000 /
+b10 .
+b101 -
+b1010 ,
+b1010 +
+$end
+#0
+$dumpvars
+bx \
+b0 [
+b0 V
+b0 U
+b0 T
+b0 S
+b0 R
+b0 Q
+0P
+b100 O
+0N
+0M
+b1000000000000 L
+b0 K
+b1000000000000 J
+b0 I
+b0 G
+b0 F
+1E
+b0 D
+0C
+0B
+0A
+b0 @
+0?
+b0 >
+0=
+b0 <
+0;
+0:
+b0 9
+08
+17
+06
+b0 5
+04
+03
+b0 *
+b0 )
+0(
+b1000000000000 '
+0&
+0%
+b0 $
+0#
+bx "
+0!
+$end
+#5000
+b110010000000000000010010111 O
+b110010000000000000010010011 "
+b110010000000000000010010011 \
+b110010000000000000010010011 )
+b110010000000000000010010011 G
+b110010000000000000010010011 [
+13
+#10000
+03
+#15000
+13
+#20000
+03
+#25000
+13
+#30000
+03
+#35000
+13
+#40000
+03
+#45000
+13
+#50000
+03
+#55000
+13
+#60000
+03
+#65000
+13
+#70000
+03
+#75000
+13
+#80000
+03
+#85000
+13
+#90000
+03
+#95000
+13
+#100000
+07
+03
+#105000
+1C
+1N
+b110010000000000000010010111 O
+1E
+b110010000000000000010010011 Q
+b1000000000000 R
+1&
+1M
+13
+#110000
+03
+#115000
+0E
+b10010111 S
+b110010000000000000010010011 *
+b110010000000000000010010011 I
+b110010000000000000010010011 $
+b110010000000000000010010011 K
+b110010000000000000010010111 '
+b110010000000000000010010111 J
+1(
+13
+#120000
+03
+#125000
+1N
+b110011011101100111001000001001 O
+b110010000000000000010010111 L
+1%
+b110011011101100111001000000101 )
+b110011011101100111001000000101 G
+b110011011101100111001000000101 [
+13
+#130000
+03
+#135000
+b1000001001 S
+b110011011101100111001000000101 *
+b110011011101100111001000000101 I
+b110011011101100111001000000101 $
+b110011011101100111001000000101 K
+b110011011101100111001000001001 '
+b110011011101100111001000001001 J
+13
+#140000
+03
+#145000
+1N
+b100 O
+b110011011101100111001000001001 L
+b0 )
+b0 G
+b0 [
+13
+#150000
+03
+#155000
+b100 S
+b0 *
+b0 I
+b0 $
+b0 K
+b100 '
+b100 J
+13
+#160000
+03
+#165000
+1N
+b1001011000000000000100010111 O
+b100 L
+b1001011000000000000100010011 )
+b1001011000000000000100010011 G
+b1001011000000000000100010011 [
+13
+#170000
+03
+#175000
+b100010111 S
+b1001011000000000000100010011 *
+b1001011000000000000100010011 I
+b1001011000000000000100010011 $
+b1001011000000000000100010011 K
+b1001011000000000000100010111 '
+b1001011000000000000100010111 J
+13
+#180000
+03
+#185000
+1N
+b100 O
+b1001011000000000000100010111 L
+b0 )
+b0 G
+b0 [
+13
+#190000
+03
+#195000
+b100 S
+b0 *
+b0 I
+b0 $
+b0 K
+b100 '
+b100 J
+13
+#200000
+0C
+b0 S
+0N
+b100 O
+1E
+b0 R
+b0 Q
+b1000000000000 L
+b1000000000000 '
+b1000000000000 J
+0%
+0&
+0M
+17
+03
+#205000
+b110010000000000000010010111 O
+b110010000000000000010010011 )
+b110010000000000000010010011 G
+b110010000000000000010010011 [
+0(
+13
+#210000
+03
+#215000
+13
+#220000
+03
+#225000
+13
+#230000
+03
+#235000
+13
+#240000
+03
+#245000
+13
+#250000
+03
+#255000
+13
+#260000
+03
+#265000
+13
+#270000
+03
+#275000
+13
+#280000
+03
+#285000
+13
+#290000
+03
+#295000
+13
+#300000
+07
+03
+#305000
+1C
+1N
+b110010000000000000010010111 O
+1E
+1&
+1M
+b110010000000000000010010011 Q
+b1000000000000 R
+13
+#310000
+03
+#315000
+0E
+b10010111 S
+b110010000000000000010010011 *
+b110010000000000000010010011 I
+b110010000000000000010010011 $
+b110010000000000000010010011 K
+b110010000000000000010010111 '
+b110010000000000000010010111 J
+1(
+13
+#320000
+03
+#325000
+1N
+b110011011101100111001000001001 O
+b110010000000000000010010111 L
+1%
+b110011011101100111001000000101 )
+b110011011101100111001000000101 G
+b110011011101100111001000000101 [
+13
+#330000
+03
+#335000
+b1000001001 S
+b110011011101100111001000000101 *
+b110011011101100111001000000101 I
+b110011011101100111001000000101 $
+b110011011101100111001000000101 K
+b110011011101100111001000001001 '
+b110011011101100111001000001001 J
+13
+#340000
+03
+#345000
+1N
+b100 O
+b110011011101100111001000001001 L
+b0 )
+b0 G
+b0 [
+13
+#350000
+03
+#355000
+b100 S
+b0 *
+b0 I
+b0 $
+b0 K
+b100 '
+b100 J
+13
+#360000
+03
+#365000
+1N
+b1001011000000000000100010111 O
+b100 L
+b1001011000000000000100010011 )
+b1001011000000000000100010011 G
+b1001011000000000000100010011 [
+13
+#370000
+03
+#375000
+b100010111 S
+b1001011000000000000100010011 *
+b1001011000000000000100010011 I
+b1001011000000000000100010011 $
+b1001011000000000000100010011 K
+b1001011000000000000100010111 '
+b1001011000000000000100010111 J
+13
+#380000
+03
+#385000
+1N
+b100 O
+b1001011000000000000100010111 L
+b0 )
+b0 G
+b0 [
+13
+#390000
+03
+#395000
+b100 S
+b0 *
+b0 I
+b0 $
+b0 K
+b100 '
+b100 J
+13
+#400000
+03
