@@ -12,11 +12,6 @@ module main_memory_tb ();
     $dumpvars;
   end
 
-  parameter CLK_PERIOD = 10;  // 100 MHz clk
-  parameter CLK_PERIOD_HALF = CLK_PERIOD / 2;
-  parameter CLK_PERIOD_QUAR = CLK_PERIOD / 4;
-  always #(CLK_PERIOD_HALF) clk = !clk;
-
   initial begin
     clk = 0;
     instr_addr = 0;
@@ -29,32 +24,22 @@ module main_memory_tb ();
     wb_wr_sel = 0;
   end
 
-  initial begin
-    test_instruction_read();
-    test_data_write_read();
-
-    #(CLK_PERIOD * 10);
-    $finish;
-  end
-
   task automatic instruction_read;
     input [31:0] read_from_address;
     output match;
-    reg [31:0] expected_instr;
     begin
       @(negedge clk);
       instr_stb  <= 1;
       instr_addr <= read_from_address;
       @(posedge clk);
       #(CLK_PERIOD_QUAR);
-      expected_instr = main_memory_inst.memory[read_from_address[ADDR_WIDTH-1:2]];
-      match = (instr == expected_instr);
+      match = (instr == hex_file_data[read_from_address[ADDR_WIDTH-1:2]]);
       $display(  //
-          "[%-6s] Read Instruction %h from address %h, expected %h",  //
-          (match) ? "OK" : "FAILED",  //
+          "[%s] Read Instruction %h from address %h, expected %h",  //
+          (match) ? "  OK  " : "FAILED",  //
           instr,  //
           instr_addr,  //
-          expected_instr  //
+          hex_file_data[read_from_address[ADDR_WIDTH-1:2]]  //
       );
       instr_stb <= 0;
     end
@@ -73,8 +58,8 @@ module main_memory_tb ();
       #(CLK_PERIOD_QUAR);
       match = (wb_rd_data == expected_data);
       $display(  //
-          "[%-6s] Read Data %h from address %h, expected %h",  //
-          (match) ? "OK" : "FAILED",  //
+          "[%s] Read Data %h from address %h, expected %h",  //
+          (match) ? "  OK  " : "FAILED",  //
           wb_rd_data,  //
           wb_addr,  //
           expected_data  //
@@ -106,6 +91,9 @@ module main_memory_tb ();
     end
   endtask  //automatic
 
+  reg [31:0] hex_file_data[0:MEMORY_DEPTH-1];
+  initial $readmemh(MEMORY_HEX, hex_file_data);
+
   task automatic test_instruction_read;
     integer address;
     integer errors = 0;
@@ -118,8 +106,8 @@ module main_memory_tb ();
         tests = tests + 1;
       end
       $display(  //
-          "\n[%-6s] Done test_instruction_read with %0d\/%0d errors",  //
-          (errors == 0) ? "OK" : "FAILED",  //
+          "\n[%s] Done test_instruction_read with %d\/%d errors",  //
+          (errors == 0) ? "  OK  " : "FAILED",  //
           errors,  //
           tests  //
       );
@@ -141,13 +129,26 @@ module main_memory_tb ();
         tests = tests + 1;
       end
       $display(  //
-          "\n[%-6s] Done test_data_write_read with %0d\/%0d errors",  //
-          (errors == 0) ? "OK" : "FAILED",  //
+          "\n[%s] Done test_data_write_read with %d\/%d errors",  //
+          (errors == 0) ? "  OK  " : "FAILED",  //
           errors,  //
           tests  //
       );
     end
   endtask  //automatic
+
+  initial begin
+    test_instruction_read();
+    test_data_write_read();
+
+    #(CLK_PERIOD * 10);
+    $finish;
+  end
+
+  parameter CLK_PERIOD = 10;  // 100 MHz clk
+  parameter CLK_PERIOD_HALF = CLK_PERIOD / 2;
+  parameter CLK_PERIOD_QUAR = CLK_PERIOD / 4;
+  always #(CLK_PERIOD_HALF) clk = !clk;
 
   reg         clk;
 
