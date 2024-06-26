@@ -30,7 +30,7 @@ module fetch #(
     // region Pipeline control
     input      stall,       // stall this stage
     input      flush,       // flush this stage
-    output reg next_clk_en  // output clk enable for pipeline stalling of next state
+    output reg next_clk_en  // clk enable for pipeline stalling of next state ([STAGE 2 DECODE])
     // endregion Pipeline control
 );
 
