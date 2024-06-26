@@ -50,6 +50,7 @@ module core #(
 
   regs regs_inst (
       .clk(clk),
+      .rst(rst),
 
       .rs_rd_en(rs_rd_en),
       .rs1     (rs1),
