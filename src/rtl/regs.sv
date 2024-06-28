@@ -5,11 +5,9 @@ module regs (
     input clk,
     input rst,
 
-    // region control by [STAGE 2 DECODE]
     input       rs_rd_en,  // source registers read enable
     input [4:0] rs1,       // source register 1 address
     input [4:0] rs2,       // source register 2 address
-    // endregion control by [STAGE 2 DECODE]
 
     // region control by [STAGE 5 WRITEBACK]
     input [ 4:0] rd,          // destination register address
