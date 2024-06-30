@@ -106,8 +106,20 @@ module execute (
 
   always @(posedge clk, posedge rst) begin : update_registers
     if (rst) begin
-      execute_exception  <= 0;
-      stall_from_execute <= 0;
+      execute_opcode_type <= 0;
+      execute_exception   <= 0;
+      execute_result      <= 0;
+      execute_rs1         <= 0;
+      execute_rs1_data    <= 0;
+      execute_rs2_data    <= 0;
+      execute_rd          <= 0;
+      execute_imm         <= 0;
+      execute_funct3      <= 0;
+      execute_rd_wr_en    <= 0;
+      execute_rd_wr_data  <= 0;
+      execute_rd_valid    <= 0;
+      stall_from_execute  <= 0;
+      execute_pc          <= 0;
     end  // update registers only if this stage is enable and pipeline is not stalled
     else if ((!stall_bit) && clk_en) begin
       execute_opcode_type <= decode_opcode_type;
