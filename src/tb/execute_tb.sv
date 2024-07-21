@@ -1,12 +1,53 @@
 `timescale 1ns / 1ps
 `define VCD_FILE "./vcds/execute_tb.vcd"
 
+// `define MEMORY "./hexs/add.hex"
+// `define MEMORY "./hexs/addi.hex"
+// `define MEMORY "./hexs/and.hex"
+// `define MEMORY "./hexs/andi.hex"
+// `define MEMORY "./hexs/auipc.hex"
+// `define MEMORY "./hexs/beq.hex"
+// `define MEMORY "./hexs/bge.hex"
+// `define MEMORY "./hexs/bgeu.hex"
+// `define MEMORY "./hexs/blt.hex"
+// `define MEMORY "./hexs/bltu.hex"
+// `define MEMORY "./hexs/bne.hex"
+// `define MEMORY "./hexs/branch_hazard.hex"
+// `define MEMORY "./hexs/data_hazard.hex"
+// `define MEMORY "./hexs/jal.hex"
+`define MEMORY "./hexs/jalr.hex"
+// `define MEMORY "./hexs/lb.hex"
+// `define MEMORY "./hexs/lbu.hex"
+// `define MEMORY "./hexs/lh.hex"
+// `define MEMORY "./hexs/lhu.hex"
+// `define MEMORY "./hexs/lui.hex"
+// `define MEMORY "./hexs/lw.hex"
+// `define MEMORY "./hexs/no_hazard.hex"
+// `define MEMORY "./hexs/or.hex"
+// `define MEMORY "./hexs/ori.hex"
+// `define MEMORY "./hexs/sb.hex"
+// `define MEMORY "./hexs/sh.hex"
+// `define MEMORY "./hexs/sw.hex"
+// `define MEMORY "./hexs/sll.hex"
+// `define MEMORY "./hexs/slli.hex"
+// `define MEMORY "./hexs/slt.hex"
+// `define MEMORY "./hexs/slti.hex"
+// `define MEMORY "./hexs/sltiu.hex"
+// `define MEMORY "./hexs/sltu.hex"
+// `define MEMORY "./hexs/sra.hex"
+// `define MEMORY "./hexs/srai.hex"
+// `define MEMORY "./hexs/srl.hex"
+// `define MEMORY "./hexs/srli.hex"
+// `define MEMORY "./hexs/sub.hex"
+// `define MEMORY "./hexs/xor.hex"
+// `define MEMORY "./hexs/xori.hex"
+
 module execute_tb ();
 
 
   localparam PC_RESET = 0;
 
-  parameter MEMORY_HEX = "./hexs/add.hex";
+  parameter MEMORY_HEX = `MEMORY;
   parameter MEMORY_BYTES = 1024 * 4;
   localparam ADDR_WIDTH = $clog2(MEMORY_BYTES);
   localparam MEMORY_DEPTH = MEMORY_BYTES / 4;
