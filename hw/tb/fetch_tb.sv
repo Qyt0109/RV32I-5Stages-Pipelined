@@ -1,3 +1,5 @@
+// compile_verilog rtl/fetch.sv rtl/main_memory.sv tb/fetch_tb.sv
+
 `timescale 1ns / 1ps
 `define VCD_FILE "./vcds/fetch_tb.vcd"
 

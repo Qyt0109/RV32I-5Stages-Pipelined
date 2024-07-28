@@ -1,7 +1,15 @@
+// compile_verilog rtl/regs.sv tb/regs_tb.sv
+// compile_verilog rtl/regs.sv tb/regs_tb.sv -DDETAILS
+
 `timescale 1ns / 1ps
 `define VCD_FILE "./vcds/regs_tb.vcd"
 
+// `define DETAILS
+
 module regs_tb ();
+
+  integer totals = 0;
+  integer fails = 0;
 
   initial begin
     $dumpfile(`VCD_FILE);
@@ -23,15 +31,29 @@ module regs_tb ();
     rst <= 1;
     #(CLK_PERIOD * 5);
     rst <= 0;
-    print_x;
-    write_rd(0, 'h1234);
-    write_rd(1, 'h9876);
-    read_rs(0, 1);
-    print_x;
-
+    test();
     #(CLK_PERIOD * 10);
     $finish;
   end
+
+  task automatic test;
+    integer i;
+    for (i = 0; i < 32; i = i + 1) begin
+      totals = totals + 1;
+      write_rd(i, $urandom);
+    end
+    for (i = 0; i < 32 / 2; i = i + 1) begin
+      totals = totals + 1;
+      read_rs(i * 2, i * 2 + 1);
+    end
+    $display(  //
+        "[%1s] DONE AUTO TESTING, SCORE: %1d/%1d (FAILED: %1d)",  //
+        fails ? "\033[91mFAILED\033[00m" : "\033[92mOK\033[00m",  //
+        totals - fails,  //
+        totals,  //
+        fails  //
+    );
+  endtask  //automatic
 
   task automatic print_x;
     integer i;
@@ -58,22 +80,28 @@ module regs_tb ();
       #(CLK_PERIOD_QUAR);
       expected_rs1_data = (rs1_addr == 0) ? 0 : regs_inst.x[rs1_addr];
       match_rs1 = (rs1_rd_data == expected_rs1_data);
+      if (!match_rs1) fails = fails + 1;
+`ifdef DETAILS
       $display(  //
-          "[%-6s]Read %08h from rs1 = x[%2d], expected %08h",  //
-          match_rs1 ? "OK" : "FAILED",  //
+          "[%-6s] Read %08h from rs1 = x[%2d], expected %08h",  //
+          match_rs1 ? "\033[92mOK\033[00m" : "\033[91mFAILED\033[00m",  //
           rs1_rd_data,  //
           rs1_addr,  //
           expected_rs1_data  //
       );
+`endif
       expected_rs2_data = (rs2_addr == 0) ? 0 : regs_inst.x[rs2_addr];
       match_rs2 = (rs2_rd_data == expected_rs2_data);
+      if (!match_rs2) fails = fails + 1;
+`ifdef DETAILS
       $display(  //
-          "[%-6s]Read %08h from rs2 = x[%2d], expected %08h",  //
-          match_rs2 ? "OK" : "FAILED",  //
+          "[%-6s] Read %08h from rs2 = x[%2d], expected %08h",  //
+          match_rs2 ? "\033[92mOK\033[00m" : "\033[91mFAILED\033[00m",  //
           rs2_rd_data,  //
           rs2_addr,  //
           expected_rs2_data  //
       );
+`endif
       rs_rd_en <= 0;
     end
   endtask  //automatic
@@ -88,7 +116,9 @@ module regs_tb ();
       rd_wr_data <= rd_write_data;
       @(posedge clk);
       #(CLK_PERIOD_QUAR);
-      $display("Write %h to rd = x[%2d]", rd_write_data, rd_addr);
+`ifdef DETAILS
+      $display("[\033[92mOK\033[00m]Write %h to rd = x[%2d]", rd_write_data, rd_addr);
+`endif
       rd_wr_en <= 0;
     end
   endtask  //automatic
@@ -110,8 +140,8 @@ module regs_tb ();
   reg  [31:0] rd_wr_data;
   reg         rd_wr_en;
 
-  wire        rs1_rd_data;
-  wire        rs2_rd_data;
+  wire [31:0] rs1_rd_data;
+  wire [31:0] rs2_rd_data;
 
   regs regs_inst (
       .clk(clk),

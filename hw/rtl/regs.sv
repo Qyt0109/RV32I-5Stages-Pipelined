@@ -15,8 +15,8 @@ module regs (
     input        rd_wr_en,    // destination register write enable
     // endregion control by [STAGE 5 WRITEBACK]
 
-    output rs1_rd_data,  // source register 1 value
-    output rs2_rd_data   // source register 2 value
+    output [31:0] rs1_rd_data,  // source register 1 value
+    output [31:0] rs2_rd_data   // source register 2 value
 );
 
   reg [31:0] x[1:31];  // regs from x1 to x31 (x0 is hard-wired with 0 value)
