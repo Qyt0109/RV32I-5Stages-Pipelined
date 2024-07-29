@@ -56,7 +56,7 @@ module fetch_tb ();
       test_execute_change_pc('h10);  // Execute change pc to 0x10
       instruction_fetch(5);
       test_writeback_change_pc('h18);  // Writeback change pc to 0x18
-      instruction_fetch(10);
+      instruction_fetch(MEMORY_DEPTH);
       $display(  //
           "[%-6s] Done test_fetch with %0d\/%0d errors",  //
           (errors == 0) ? "\033[92mOK\033[00m" : "\033[91mFAILED\033[00m",  //
