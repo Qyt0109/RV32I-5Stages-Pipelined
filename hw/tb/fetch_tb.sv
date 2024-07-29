@@ -2,13 +2,18 @@
 
 `timescale 1ns / 1ps
 `define VCD_FILE "./vcds/fetch_tb.vcd"
+`define MEMORY "./hexs/add.hex"
+// `define DETAILS
 
 module fetch_tb ();
 
+  integer totals = 0;
+  integer errors = 0;
 
   localparam PC_RESET = 0;
 
-  parameter MEMORY_HEX = "./hexs/add.hex";
+  // parameter MEMORY_HEX = "./hexs/add.hex";
+
   parameter MEMORY_BYTES = 1024;
   localparam ADDR_WIDTH = $clog2(MEMORY_BYTES);
   localparam MEMORY_DEPTH = MEMORY_BYTES / 4;
@@ -35,20 +40,58 @@ module fetch_tb ();
   end
 
   initial begin
+    // Reset
     reset(1);
-    instruction_fetch(10);
-    test_execute_change_pc('h10);
-    instruction_fetch(5);
-    test_writeback_change_pc('h18);
-    instruction_fetch(100);
+    // Test fetch and change pc
+    test_fetch();
     $finish;
   end
 
+  task automatic test_fetch;
+    begin
+      totals = 0;
+      errors = 0;
+      // Test fetch and change pc
+      instruction_fetch(10);
+      test_execute_change_pc('h10);  // Execute change pc to 0x10
+      instruction_fetch(5);
+      test_writeback_change_pc('h18);  // Writeback change pc to 0x18
+      instruction_fetch(10);
+      $display(  //
+          "[%-6s] Done test_fetch with %0d\/%0d errors",  //
+          (errors == 0) ? "\033[92mOK\033[00m" : "\033[91mFAILED\033[00m",  //
+          errors,  //
+          totals  //
+      );
+    end
+  endtask  //automatic
+
   task automatic instruction_fetch;
     input integer number_of_instructions;
+    reg match;
+    reg [31:0] instr_in_mem;
     begin
       @(negedge clk);
-      repeat (number_of_instructions) @(posedge clk);
+      repeat (number_of_instructions) begin
+        @(posedge clk);
+        #1;  // Wait for signals to change
+        instr_in_mem = main_memory_inst.memory[pc>>2];
+        match = (fetch_instr == instr_in_mem);
+`ifdef DETAILS
+        $write(  //
+            "[%-6s] pc = %4d, instr_fetch = %8h, instr_in_mem = %8h",  //
+            (match) ? "\033[92mOK\033[00m" : "\033[91mFAILED\033[00m",  //
+            pc, fetch_instr, instr_in_mem  //
+        );
+        $write(  //
+            "%s >>> [Info] stall_bit = %1b, stall = %1b, flush = %1b, next_clk_en = %1b\033[00m\n",  //
+            ((!fetch_inst.stall_bit) && (!stall) && (!flush) && next_clk_en) ? "\033[00m" : "\033[95m",  //
+            fetch_inst.stall_bit, stall, flush, next_clk_en  //
+        );
+`endif
+        totals = totals + 1;
+        if (!match) errors = errors + 1;
+      end
     end
   endtask  //automatic
 
@@ -61,6 +104,12 @@ module fetch_tb ();
       @(posedge clk);
       #(CLK_PERIOD_QUAR);
       execute_change_pc <= 0;
+`ifdef DETAILS
+      $display(  //
+          "\033[94m>>> PC changed to %1d due to Execute\033[00m",  //
+          next_pc  //
+      );
+`endif
     end
   endtask  //automatic
 
@@ -73,6 +122,12 @@ module fetch_tb ();
       @(posedge clk);
       #(CLK_PERIOD_QUAR);
       writeback_change_pc <= 0;
+`ifdef DETAILS
+      $display(  //
+          "\033[94m>>> PC changed to %1d due to Writeback\033[00m",  //
+          next_pc  //
+      );
+`endif
     end
   endtask  //automatic
 
@@ -84,6 +139,9 @@ module fetch_tb ();
       repeat (clk_period) @(posedge clk);
       @(negedge clk);
       rst <= 0;
+`ifdef DETAILS
+      $display("\033[94m>>> Reset released...\033[00m");
+`endif
     end
   endtask  //automatic
 
@@ -148,7 +206,7 @@ module fetch_tb ();
   wire [31:0] wb_rd_data;
 
   main_memory #(
-      .MEMORY_HEX  (MEMORY_HEX),
+      .MEMORY_HEX  (`MEMORY),
       .MEMORY_BYTES(MEMORY_BYTES)
   ) main_memory_inst (
       .clk(clk),

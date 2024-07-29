@@ -1,2 +1,10 @@
 # Test
+# regs
+# compile_verilog rtl/regs.sv tb/regs_tb.sv -DDETAILS
 compile_verilog rtl/regs.sv tb/regs_tb.sv
+# main_memory
+# compile_verilog rtl/main_memory.sv tb/main_memory_tb.sv -DDETAILS
+compile_verilog rtl/main_memory.sv tb/main_memory_tb.sv
+# fetch
+# compile_verilog rtl/fetch.sv rtl/main_memory.sv tb/fetch_tb.sv -DDETAILS
+compile_verilog rtl/fetch.sv rtl/main_memory.sv tb/fetch_tb.sv
