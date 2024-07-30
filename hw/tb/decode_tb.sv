@@ -32,11 +32,11 @@ module decode_tb ();
     writeback_next_pc          <= 0;
     execute_change_pc          <= 0;
     execute_next_pc            <= 0;
-    main_memory_inst.memory[0] <= 'h002081b3;  // add  x3, x1, x2      [RTYPE]
-    main_memory_inst.memory[1] <= 'hf6a00113;  // addi x2, x0, -150    [ITYPE]
+    main_memory_inst.memory[0] <= 'h402081b3;  // sub  x3, x1, x2      [RTYPE]
+    main_memory_inst.memory[1] <= 'hf6a04113;  // xori x2, x0, -150    [ITYPE]
     main_memory_inst.memory[2] <= 'h00008103;  // lb   x2,  0(x1)      [LOAD]
     main_memory_inst.memory[3] <= 'hfe311e23;  // sh   x3, -4(x2)      [STORE]
-    main_memory_inst.memory[4] <= 'h00115463;  // bge  x2, x1, 8       [BRANCH]
+    main_memory_inst.memory[4] <= 'hfe1158e3;  // bge  x2, x1, -16     [BRANCH]
     main_memory_inst.memory[5] <= 'h010000ef;  // jal  x1, 16          [JAL]
     main_memory_inst.memory[6] <= 'h018081e7;  // jalr x3, 24(x1)      [JALR]
     main_memory_inst.memory[7] <= 'habcde097;  // auipc x1, -344866    [AUIPC]
@@ -86,8 +86,7 @@ module decode_tb ();
             flush_decode, decode_flush,  //
         );
 
-        $display("%s %s", get_opcode_type(decode_opcode_type), get_alu_type(decode_opcode_type,
-                                                                            decode_funct3));
+        $display("%s", get_opcode_type(decode_opcode_type));
         get_decode_info();
         $display("\n");
 `endif
@@ -133,6 +132,7 @@ module decode_tb ();
     end
   endfunction
 
+  
   function string get_alu_type;
     input [`ALU_WIDTH-1:0] decode_alu_type;
     input [2:0] decode_funct3;
@@ -157,18 +157,32 @@ module decode_tb ();
 
   function string get_decode_info;
     begin
+      // REG
       if (decode_opcode_type[`RTYPE]) begin
-        $write("%s x%1d, x%1d, x%1d", get_alu_type(decode_alu_type, decode_funct3), decode_r_rd,
-               decode_r_rs1, decode_r_rs2);
+        if (decode_inst.funct7_bit6) $write("\033[92mSUB\033[00m");
+        else $write("\033[92mADD\033[00m");
+        $write(" x%1d, x%1d, x%1d", decode_r_rd, decode_r_rs1, decode_r_rs2);
+        // IMM
       end else if (decode_opcode_type[`ITYPE]) begin
-        $write("%s x%1d, x%1d, %1d", get_alu_type(decode_alu_type, decode_funct3), decode_r_rd,
-               decode_r_rs1, decode_imm);
+        $write("%s\033[92mI\033[00m x%1d, x%1d, %1d", get_alu_type(decode_alu_type, decode_funct3),
+               decode_r_rd, decode_r_rs1, decode_imm);
+        // LOAD
       end else if (decode_opcode_type[`LOAD]) begin
-        $write("%s x%1d, %1d(x%1d)", get_alu_type(decode_alu_type, decode_funct3), decode_r_rd,
-               decode_imm, decode_r_rs1);
+        if (decode_funct3 == `FUNCT3_LB) $write("\033[92mLB\033[00m");
+        else if (decode_funct3 == `FUNCT3_LBU) $write("\033[92mLBU\033[00m");
+        else if (decode_funct3 == `FUNCT3_LH) $write("\033[92mLH\033[00m");
+        else if (decode_funct3 == `FUNCT3_LHU) $write("\033[92mLHU\033[00m");
+        else if (decode_funct3 == `FUNCT3_LW) $write("\033[92mLW\033[00m");
+        else $write("\033[91mInvalid\033[00m");
+        $write(" x%1d, %1d(x%1d)", decode_r_rd, decode_imm, decode_r_rs1);
+        // STORE
       end else if (decode_opcode_type[`STORE]) begin
-        $write("%s x%1d, %1d(x%1d)", get_alu_type(decode_alu_type, decode_funct3), decode_r_rd,
-               decode_imm, decode_r_rs1);
+        if (decode_funct3 == `FUNCT3_SB) $write("\033[92mSB\033[00m");
+        else if (decode_funct3 == `FUNCT3_SH) $write("\033[92mSH\033[00m");
+        else if (decode_funct3 == `FUNCT3_SW) $write("\033[92mSW\033[00m");
+        else $write("\033[91mInvalid\033[00m");
+        $write(" x%1d, %1d(x%1d)", decode_r_rs2, decode_imm, decode_r_rs1);
+        // BRANCH
       end else if (decode_opcode_type[`BRANCH]) begin
         if (decode_funct3 == `FUNCT3_EQ) $write("\033[92mBEQ\033[00m");
         else if (decode_funct3 == `FUNCT3_NEQ) $write("\033[92mBNE\033[00m");
@@ -178,19 +192,30 @@ module decode_tb ();
         else if (decode_funct3 == `FUNCT3_GEU) $write("\033[92mBGEU\033[00m");
         else $write("\033[91mInvalid\033[00m");
         $write(" x%1d, x%1d, %1d", decode_r_rs1, decode_r_rs2, decode_imm);
+        // JAL
+      end else if (decode_opcode_type[`JAL]) begin
+        $write("\033[92mJAL\033[00m x%1d, %1d", decode_r_rd, decode_imm);
+        // JALR
+      end else if (decode_opcode_type[`JALR]) begin
+        $write("\033[92mJALR\033[00m x%1d, x%1d, %1d", decode_r_rd, decode_r_rs1, decode_imm);
       end else
-      if (decode_opcode_type[`JAL]) begin
-      end else
-      if (decode_opcode_type[`JALR]) begin
-      end else
+      // LUI
       if (decode_opcode_type[`LUI]) begin
+        $write("\033[92mLUI\033[00m x%1d, %1d", decode_r_rd, decode_imm);
       end else
+      // AUIPC
       if (decode_opcode_type[`AUIPC]) begin
+        $write("\033[92mAUIPC\033[00m x%1d, %1d", decode_r_rd, decode_imm);
       end else
+      // SYSTEM
       if (decode_opcode_type[`SYSTEM]) begin
+        // TODO
       end else
+      // FENCE
       if (decode_opcode_type[`FENCE]) begin
+        // TODO
       end else begin
+        // TODO
       end
     end
   endfunction
