@@ -32,8 +32,8 @@ module decode_tb ();
     writeback_next_pc          <= 0;
     execute_change_pc          <= 0;
     execute_next_pc            <= 0;
-    main_memory_inst.memory[0] <= 'h002081b3;  // addi x3, x1, x2      [RTYPE]
-    main_memory_inst.memory[1] <= 'h09600113;  // addi x2, x0, 150     [ITYPE]
+    main_memory_inst.memory[0] <= 'h002081b3;  // add  x3, x1, x2      [RTYPE]
+    main_memory_inst.memory[1] <= 'hf6a00113;  // addi x2, x0, -150    [ITYPE]
     main_memory_inst.memory[2] <= 'h00008103;  // lb   x2,  0(x1)      [LOAD]
     main_memory_inst.memory[3] <= 'hfe311e23;  // sh   x3, -4(x2)      [STORE]
     main_memory_inst.memory[4] <= 'h00115463;  // bge  x2, x1, 8       [BRANCH]
@@ -67,7 +67,7 @@ module decode_tb ();
 
   task automatic instruction_decode;
     input integer number_of_test;
-    string opcode_type;
+    string opcode_type, alu_type;
     reg [31:0] previous_fetch_instr;
     begin
       repeat (number_of_test) begin
@@ -82,31 +82,118 @@ module decode_tb ();
         $write(  //
             "%s >>> [Info] stall_bit = %1b, decode_clk_en = %1b, execute_clk_en = %1b, stall_decode = %1b, decode_stall = %1b, flush_decode = %1b, decode_flush = %1b\033[00m\n",  //
             ((!decode_inst.stall_bit) && decode_clk_en && execute_clk_en && (!stall_decode) && (!decode_stall) && (!flush_decode) && (!decode_flush)) ? "\033[00m" : "\033[95m",  //
-            decode_inst.stall_bit, decode_clk_en, execute_clk_en, stall_decode, decode_stall, flush_decode, decode_flush,//
+            decode_inst.stall_bit, decode_clk_en, execute_clk_en, stall_decode, decode_stall,
+            flush_decode, decode_flush,  //
         );
-        // .clk_en     (decode_clk_en),
-        // .next_clk_en(execute_clk_en),
-        // .stall      (stall_decode),
-        // .next_stall (decode_stall),
-        // .flush      (flush_decode),
-        // .next_flush (decode_flush)
-        $write(">>>");
-        $write("%s RTYPE\033[00m", decode_opcode_type[`RTYPE] ? "\033[92m" : "\033[00m");
-        $write("%s ITYPE\033[00m", decode_opcode_type[`ITYPE] ? "\033[92m" : "\033[00m");
-        $write("%s LOAD\033[00m", decode_opcode_type[`LOAD] ? "\033[92m" : "\033[00m");
-        $write("%s STORE\033[00m", decode_opcode_type[`STORE] ? "\033[92m" : "\033[00m");
-        $write("%s BRANCH\033[00m", decode_opcode_type[`BRANCH] ? "\033[92m" : "\033[00m");
-        $write("%s JAL\033[00m", decode_opcode_type[`JAL] ? "\033[92m" : "\033[00m");
-        $write("%s JALR\033[00m", decode_opcode_type[`JALR] ? "\033[92m" : "\033[00m");
-        $write("%s LUI\033[00m", decode_opcode_type[`LUI] ? "\033[92m" : "\033[00m");
-        $write("%s AUIPC\033[00m", decode_opcode_type[`AUIPC] ? "\033[92m" : "\033[00m");
-        $write("%s SYSTEM\033[00m", decode_opcode_type[`SYSTEM] ? "\033[92m" : "\033[00m");
-        $write("%s FENCE\033[00m", decode_opcode_type[`FENCE] ? "\033[92m" : "\033[00m");
-`endif
+
+        $display("%s %s", get_opcode_type(decode_opcode_type), get_alu_type(decode_opcode_type,
+                                                                            decode_funct3));
+        get_decode_info();
         $display("\n");
+`endif
       end
     end
   endtask  //automatic
+
+  function string get_opcode_type;
+    input [`OPCODE_WIDTH-1:0] decode_opcode_type;
+    integer number_of_bit_1;
+    begin
+      number_of_bit_1 = 0;
+      for (integer check_bit = 0; check_bit < `OPCODE_WIDTH; check_bit = check_bit + 1) begin
+        if (decode_opcode_type[check_bit]) number_of_bit_1 = number_of_bit_1 + 1;
+      end
+      if (number_of_bit_1 > 1) begin
+        get_opcode_type = "\033[91mERROR (DECODED MORE THAN 1 TYPE)\033[00m";
+      end else if (decode_opcode_type[`RTYPE]) begin
+        get_opcode_type = "\033[92mRTYPE\033[00m";
+      end else if (decode_opcode_type[`ITYPE]) begin
+        get_opcode_type = "\033[92mITYPE\033[00m";
+      end else if (decode_opcode_type[`LOAD]) begin
+        get_opcode_type = "\033[92mLOAD\033[00m";
+      end else if (decode_opcode_type[`STORE]) begin
+        get_opcode_type = "\033[92mSTORE\033[00m";
+      end else if (decode_opcode_type[`BRANCH]) begin
+        get_opcode_type = "\033[92mBRANCH\033[00m";
+      end else if (decode_opcode_type[`JAL]) begin
+        get_opcode_type = "\033[92mJAL\033[00m";
+      end else if (decode_opcode_type[`JALR]) begin
+        get_opcode_type = "\033[92mJALR\033[00m";
+      end else if (decode_opcode_type[`LUI]) begin
+        get_opcode_type = "\033[92mLUI\033[00m";
+      end else if (decode_opcode_type[`AUIPC]) begin
+        get_opcode_type = "\033[92mAUIPC\033[00m";
+      end else if (decode_opcode_type[`SYSTEM]) begin
+        get_opcode_type = "\033[92mSYSTEM\033[00m";
+      end else if (decode_opcode_type[`FENCE]) begin
+        get_opcode_type = "\033[92mFENCE\033[00m";
+      end else begin
+        get_opcode_type = "\033[91mILLEGAL (NO TYPE DECODED)\033[00m";
+      end
+    end
+  endfunction
+
+  function string get_alu_type;
+    input [`ALU_WIDTH-1:0] decode_alu_type;
+    input [2:0] decode_funct3;
+    begin
+      if (decode_alu_type[`ADD]) get_alu_type = "\033[92mADD\033[00m";
+      else if (decode_alu_type[`SUB]) get_alu_type = "\033[92mSUB\033[00m";
+      else if (decode_alu_type[`SLT]) get_alu_type = "\033[92mSLT\033[00m";
+      else if (decode_alu_type[`SLTU]) get_alu_type = "\033[92mSLTU\033[00m";
+      else if (decode_alu_type[`XOR]) get_alu_type = "\033[92mXOR\033[00m";
+      else if (decode_alu_type[`OR]) get_alu_type = "\033[92mOR\033[00m";
+      else if (decode_alu_type[`AND]) get_alu_type = "\033[92mAND\033[00m";
+      else if (decode_alu_type[`SLL]) get_alu_type = "\033[92mSLL\033[00m";
+      else if (decode_alu_type[`SRL]) get_alu_type = "\033[92mSRL\033[00m";
+      else if (decode_alu_type[`SRA]) get_alu_type = "\033[92mSRA\033[00m";
+      else if (decode_alu_type[`EQ]) get_alu_type = "\033[92mEQ\033[00m";
+      else if (decode_alu_type[`NEQ]) get_alu_type = "\033[92mNEQ\033[00m";
+      else if (decode_alu_type[`GE]) get_alu_type = "\033[92mGE\033[00m";
+      else if (decode_alu_type[`GEU]) get_alu_type = "\033[92mGEU\033[00m";
+      else get_alu_type = "\033[91mINVALID ALU \033[00m";
+    end
+  endfunction
+
+  function string get_decode_info;
+    begin
+      if (decode_opcode_type[`RTYPE]) begin
+        $write("%s x%1d, x%1d, x%1d", get_alu_type(decode_alu_type, decode_funct3), decode_r_rd,
+               decode_r_rs1, decode_r_rs2);
+      end else if (decode_opcode_type[`ITYPE]) begin
+        $write("%s x%1d, x%1d, %1d", get_alu_type(decode_alu_type, decode_funct3), decode_r_rd,
+               decode_r_rs1, decode_imm);
+      end else if (decode_opcode_type[`LOAD]) begin
+        $write("%s x%1d, %1d(x%1d)", get_alu_type(decode_alu_type, decode_funct3), decode_r_rd,
+               decode_imm, decode_r_rs1);
+      end else if (decode_opcode_type[`STORE]) begin
+        $write("%s x%1d, %1d(x%1d)", get_alu_type(decode_alu_type, decode_funct3), decode_r_rd,
+               decode_imm, decode_r_rs1);
+      end else if (decode_opcode_type[`BRANCH]) begin
+        if (decode_funct3 == `FUNCT3_EQ) $write("\033[92mBEQ\033[00m");
+        else if (decode_funct3 == `FUNCT3_NEQ) $write("\033[92mBNE\033[00m");
+        else if (decode_funct3 == `FUNCT3_LT) $write("\033[92mBLT\033[00m");
+        else if (decode_funct3 == `FUNCT3_GE) $write("\033[92mBGE\033[00m");
+        else if (decode_funct3 == `FUNCT3_LTU) $write("\033[92mBLTU\033[00m");
+        else if (decode_funct3 == `FUNCT3_GEU) $write("\033[92mBGEU\033[00m");
+        else $write("\033[91mInvalid\033[00m");
+        $write(" x%1d, x%1d, %1d", decode_r_rs1, decode_r_rs2, decode_imm);
+      end else
+      if (decode_opcode_type[`JAL]) begin
+      end else
+      if (decode_opcode_type[`JALR]) begin
+      end else
+      if (decode_opcode_type[`LUI]) begin
+      end else
+      if (decode_opcode_type[`AUIPC]) begin
+      end else
+      if (decode_opcode_type[`SYSTEM]) begin
+      end else
+      if (decode_opcode_type[`FENCE]) begin
+      end else begin
+      end
+    end
+  endfunction
 
   task automatic instruction_fetch;
     input integer number_of_instructions;
@@ -187,26 +274,26 @@ module decode_tb ();
     end
   endtask  //automatic
 
-  reg                         clk;
-  reg                         rst;
+  reg                                clk;
+  reg                                rst;
 
-  wire [                31:0] decode_pc;
-  wire [                 4:0] decode_rs1;
-  wire [                 4:0] decode_r_rs1;
-  wire [                 4:0] decode_rs2;
-  wire [                 4:0] decode_r_rs2;
-  wire [                 4:0] decode_r_rd;
-  wire [                31:0] decode_imm;
-  wire [                 2:0] decode_funct3;
-  wire [      `ALU_WIDTH-1:0] decode_alu_type;
-  wire [   `OPCODE_WIDTH-1:0] decode_opcode_type;
-  wire [`EXCEPTION_WIDTH-1:0] decode_exception;
+  wire        [                31:0] decode_pc;
+  wire        [                 4:0] decode_rs1;
+  wire        [                 4:0] decode_r_rs1;
+  wire        [                 4:0] decode_rs2;
+  wire        [                 4:0] decode_r_rs2;
+  wire        [                 4:0] decode_r_rd;
+  wire signed [                31:0] decode_imm;
+  wire        [                 2:0] decode_funct3;
+  wire        [      `ALU_WIDTH-1:0] decode_alu_type;
+  wire        [   `OPCODE_WIDTH-1:0] decode_opcode_type;
+  wire        [`EXCEPTION_WIDTH-1:0] decode_exception;
 
-  wire                        execute_clk_en;
-  wire                        stall_decode = 0;
-  wire                        decode_stall;
-  wire                        flush_decode = 0;
-  wire                        decode_flush;
+  wire                               execute_clk_en;
+  wire                               stall_decode = 0;
+  wire                               decode_stall;
+  wire                               flush_decode = 0;
+  wire                               decode_flush;
 
 
   decode decode_inst (
