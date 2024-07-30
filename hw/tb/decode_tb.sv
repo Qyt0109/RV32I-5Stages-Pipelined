@@ -3,6 +3,8 @@
 
 module decode_tb ();
 
+  integer totals = 0;
+  integer errors = 0;
 
   localparam PC_RESET = 0;
 
@@ -30,25 +32,108 @@ module decode_tb ();
     writeback_next_pc          <= 0;
     execute_change_pc          <= 0;
     execute_next_pc            <= 0;
-    main_memory_inst.memory[0] <= TEST_INSTRUCTION;
+    main_memory_inst.memory[0] <= 'h002081b3;  // addi x3, x1, x2      [RTYPE]
+    main_memory_inst.memory[1] <= 'h09600113;  // addi x2, x0, 150     [ITYPE]
+    main_memory_inst.memory[2] <= 'h00008103;  // lb   x2,  0(x1)      [LOAD]
+    main_memory_inst.memory[3] <= 'hfe311e23;  // sh   x3, -4(x2)      [STORE]
+    main_memory_inst.memory[4] <= 'h00115463;  // bge  x2, x1, 8       [BRANCH]
+    main_memory_inst.memory[5] <= 'h010000ef;  // jal  x1, 16          [JAL]
+    main_memory_inst.memory[6] <= 'h018081e7;  // jalr x3, 24(x1)      [JALR]
+    main_memory_inst.memory[7] <= 'habcde097;  // auipc x1, -344866    [AUIPC]
+    main_memory_inst.memory[8] <= 'h30556473;  // csrrsi x8, mtvec, 10 [SYSTEM]
+    main_memory_inst.memory[9] <= 'h0ff0000f;  // fence iorw, iorw     [FENCE]
+    for (integer i = 10; i < MEMORY_DEPTH; i = i + 1) begin
+      main_memory_inst.memory[i] <= 0;
+    end
   end
 
   initial begin
+    // Reset
     reset(1);
-    instruction_fetch(5);
-    // instruction_fetch(2);
-    // test_execute_change_pc('h10);
-    // instruction_fetch(3);
-    // test_writeback_change_pc('h18);
-    // instruction_fetch(5);
+    // Test fetch, decode and change pc
+    test_decode();
     $finish;
   end
 
+  task automatic test_decode;
+    begin
+      instruction_decode(11);
+      test_execute_change_pc('h18);
+      instruction_decode(11);
+      test_writeback_change_pc('h10);
+      instruction_decode(11);
+    end
+  endtask  //automatic
+
+  task automatic instruction_decode;
+    input integer number_of_test;
+    string opcode_type;
+    reg [31:0] previous_fetch_instr;
+    begin
+      repeat (number_of_test) begin
+        // Fetch
+        instruction_fetch(1, previous_fetch_instr);
+`ifdef DETAILS
+        $write(  //
+            "[%sDECODE\033[00m] decode_pc = %4d, decode_instr = \033[96m%8h\033[00m",  //
+            (|decode_opcode_type) ? "\033[92m" : "\033[91m",  //
+            decode_pc, previous_fetch_instr  //
+        );
+        $write(  //
+            "%s >>> [Info] stall_bit = %1b, decode_clk_en = %1b, execute_clk_en = %1b, stall_decode = %1b, decode_stall = %1b, flush_decode = %1b, decode_flush = %1b\033[00m\n",  //
+            ((!decode_inst.stall_bit) && decode_clk_en && execute_clk_en && (!stall_decode) && (!decode_stall) && (!flush_decode) && (!decode_flush)) ? "\033[00m" : "\033[95m",  //
+            decode_inst.stall_bit, decode_clk_en, execute_clk_en, stall_decode, decode_stall, flush_decode, decode_flush,//
+        );
+        // .clk_en     (decode_clk_en),
+        // .next_clk_en(execute_clk_en),
+        // .stall      (stall_decode),
+        // .next_stall (decode_stall),
+        // .flush      (flush_decode),
+        // .next_flush (decode_flush)
+        $write(">>>");
+        $write("%s RTYPE\033[00m", decode_opcode_type[`RTYPE] ? "\033[92m" : "\033[00m");
+        $write("%s ITYPE\033[00m", decode_opcode_type[`ITYPE] ? "\033[92m" : "\033[00m");
+        $write("%s LOAD\033[00m", decode_opcode_type[`LOAD] ? "\033[92m" : "\033[00m");
+        $write("%s STORE\033[00m", decode_opcode_type[`STORE] ? "\033[92m" : "\033[00m");
+        $write("%s BRANCH\033[00m", decode_opcode_type[`BRANCH] ? "\033[92m" : "\033[00m");
+        $write("%s JAL\033[00m", decode_opcode_type[`JAL] ? "\033[92m" : "\033[00m");
+        $write("%s JALR\033[00m", decode_opcode_type[`JALR] ? "\033[92m" : "\033[00m");
+        $write("%s LUI\033[00m", decode_opcode_type[`LUI] ? "\033[92m" : "\033[00m");
+        $write("%s AUIPC\033[00m", decode_opcode_type[`AUIPC] ? "\033[92m" : "\033[00m");
+        $write("%s SYSTEM\033[00m", decode_opcode_type[`SYSTEM] ? "\033[92m" : "\033[00m");
+        $write("%s FENCE\033[00m", decode_opcode_type[`FENCE] ? "\033[92m" : "\033[00m");
+`endif
+        $display("\n");
+      end
+    end
+  endtask  //automatic
+
   task automatic instruction_fetch;
     input integer number_of_instructions;
+    output [31:0] previous_fetch_instr;
+    reg match;
+    reg [31:0] instr_in_mem;
     begin
       @(negedge clk);
-      repeat (number_of_instructions) @(posedge clk);
+      repeat (number_of_instructions) begin
+        previous_fetch_instr = fetch_instr;
+        @(posedge clk);
+        #1;  // Wait for signals to change
+        instr_in_mem = main_memory_inst.memory[fetch_pc>>2];
+        match = (fetch_instr == instr_in_mem);
+`ifdef DETAILS
+        $write(  //
+            "[%-6s] fetch_pc  = %4d, instr_fetch  = \033[96m%8h\033[00m",  //
+            (match) ? "\033[92mFETCH \033[00m" : "\033[91mFETCH \033[00m",  //
+            fetch_pc, fetch_instr  //
+        );
+        $write(  //
+            "%s >>> [Info] stall_bit = %1b, stall_fetch = %1b, decode_flush = %1b, decode_clk_en = %1b\033[00m\n",  //
+            ((!fetch_inst.stall_bit) && (!stall_fetch) && (!decode_flush) && decode_clk_en) ? "\033[00m" : "\033[95m",  //
+            fetch_inst.stall_bit, stall_fetch, decode_flush, decode_clk_en  //
+        );
+`endif
+      end
     end
   endtask  //automatic
 
@@ -61,6 +146,12 @@ module decode_tb ();
       @(posedge clk);
       #(CLK_PERIOD_QUAR);
       execute_change_pc <= 0;
+`ifdef DETAILS
+      $display(  //
+          "\033[94m>>> fetch_pc changed to %1d due to Execute\033[00m",  //
+          next_pc  //
+      );
+`endif
     end
   endtask  //automatic
 
@@ -73,6 +164,12 @@ module decode_tb ();
       @(posedge clk);
       #(CLK_PERIOD_QUAR);
       writeback_change_pc <= 0;
+`ifdef DETAILS
+      $display(  //
+          "\033[94m>>> fetch_pc changed to %1d due to Writeback\033[00m",  //
+          next_pc  //
+      );
+`endif
     end
   endtask  //automatic
 
@@ -84,6 +181,9 @@ module decode_tb ();
       repeat (clk_period) @(posedge clk);
       @(negedge clk);
       rst <= 0;
+`ifdef DETAILS
+      $display("\033[94m>>> Reset released...\033[00m");
+`endif
     end
   endtask  //automatic
 

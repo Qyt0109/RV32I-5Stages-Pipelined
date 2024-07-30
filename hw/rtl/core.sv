@@ -44,8 +44,8 @@ module core #(
   wire        rd_wr_en;  // destination register write enable
   // endregion control by [STAGE 5 WRITEBACK]
 
-  wire        rs1_rd_data;  // source register 1 value
-  wire        rs2_rd_data;  // source register 2 value
+  wire [31:0] rs1_rd_data;  // source register 1 value
+  wire [31:0] rs2_rd_data;  // source register 2 value
 
 
   regs regs_inst (
