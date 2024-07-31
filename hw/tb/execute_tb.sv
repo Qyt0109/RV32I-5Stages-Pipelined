@@ -122,14 +122,21 @@ module execute_tb ();
             (|decode_opcode_type) ? "\033[92m" : "\033[91m",  //
             decode_pc, previous_fetch_instr  //
         );
+        /*
         $write(  //
             "%s >>> [Info] stall_bit = %1b, decode_clk_en = %1b, execute_clk_en = %1b, stall_decode = %1b, decode_stall = %1b, flush_decode = %1b, decode_flush = %1b\033[00m\n",  //
             ((!decode_inst.stall_bit) && decode_clk_en && execute_clk_en && (!stall_decode) && (!decode_stall) && (!flush_decode) && (!decode_flush)) ? "\033[00m" : "\033[95m",  //
             decode_inst.stall_bit, decode_clk_en, execute_clk_en, stall_decode, decode_stall,
             flush_decode, decode_flush,  //
         );
+        */
+        $display();
 
-        $display("%s", get_opcode_type(decode_opcode_type));
+        $display(  //
+            "%s +++ %s",  //
+            get_opcode_type(decode_opcode_type),  //
+            get_alu_type(decode_opcode_type)  //
+        );
         get_decode_info();
         get_alu_info();
         $display("\n");
@@ -179,7 +186,8 @@ module execute_tb ();
 
   function automatic string get_alu_info;
     begin
-      $write("[\033[92mALU\033[00m] %s", get_alu_type(decode_alu_type));
+      $write("[\033[92mALU\033[00m]");
+      $write(" result = %1d", execute_result);
     end
   endfunction
 
@@ -215,7 +223,7 @@ module execute_tb ();
         // IMM
       end else if (decode_opcode_type[`ITYPE]) begin
         $write("%s\033[92mI\033[00m x%1d, x%1d, %1d", get_alu_type(decode_alu_type), decode_r_rd,
-               decode_r_rs1);
+               decode_r_rs1, $signed(decode_imm));
         // LOAD
       end else if (decode_opcode_type[`LOAD]) begin
         if (decode_funct3 == `FUNCT3_LB) $write("\033[92mLB\033[00m");
@@ -332,6 +340,10 @@ module execute_tb ();
     end
   endtask  //automatic
 
+  reg                         clk;
+  reg                         rst;
+
+  // region execute
   // reg [`ALU_WIDTH-1:0] decode_alu_type;
 
   // reg [4:0] decode_r_rs1;
@@ -370,13 +382,13 @@ module execute_tb ();
   wire                        execute_rd_valid;
 
   wire                        stall_from_execute;
-  reg                         clk_en;
-  wire                        next_clk_en;
-  reg                         stall;
-  reg                         force_stall;
-  wire                        next_stall;
-  reg                         flush;
-  wire                        next_flush;
+  // reg                         clk_en;
+  wire                        memory_clk_en;
+  reg                         stall_execute = 0;
+  reg                         execute_force_stall = 0;
+  wire                        execute_stall;
+  reg                         memory_flush = 0;
+  wire                        execute_flush;
 
 
   execute execute_inst (
@@ -421,18 +433,47 @@ module execute_tb ();
       .execute_rd_valid  (execute_rd_valid),
 
       .stall_from_execute(stall_from_execute),
-      .clk_en            (clk_en),
-      .next_clk_en       (next_clk_en),
-      .stall             (stall),
-      .force_stall       (force_stall),
-      .next_stall        (next_stall),
-      .flush             (flush),
-      .next_flush        (next_flush)
+      .clk_en            (execute_clk_en),
+      .next_clk_en       (memory_clk_en),
+      .stall             (stall_execute),
+      .force_stall       (execute_force_stall),
+      .next_stall        (execute_stall),
+      .flush             (memory_flush),
+      .next_flush        (execute_flush)
+  );
+  // endregion execute
+
+  // region regs
+  reg rs_rd_en = (decode_clk_en && (!decode_stall));
+  // reg [4:0] rs1;
+  // reg [4:0] rs2;
+
+  reg [4:0] rd = 0;  // TODO writeback rd address
+  reg [31:0] rd_wr_data = 0;  // TODO writeback rd data
+  reg rd_wr_en = 0;  // TODO writeback write enable
+
+  wire [31:0] rs1_rd_data;  // TODO connect to forward module
+  wire [31:0] rs2_rd_data;  // TODO connect to forward module
+
+  regs regs_inst (
+      .clk(clk),
+      .rst(rst),
+
+      .rs_rd_en(rs_rd_en),
+      .rs1     (decode_rs1),
+      .rs2     (decode_rs2),
+
+      .rd        (rd),
+      .rd_wr_data(rd_wr_data),
+      .rd_wr_en  (rd_wr_en),
+
+      .rs1_rd_data(rs1_rd_data),
+      .rs2_rd_data(rs2_rd_data)
   );
 
-  reg                         clk;
-  reg                         rst;
+  // endregion regs
 
+  // region decode
   // wire [                31:0] decode_pc;
   wire [                 4:0] decode_rs1;
   wire [                 4:0] decode_r_rs1;
@@ -446,11 +487,10 @@ module execute_tb ();
   wire [`EXCEPTION_WIDTH-1:0] decode_exception;
 
   wire                        execute_clk_en;
-  wire                        stall_decode = 0;
+  wire                        stall_decode = execute_stall;
   wire                        decode_stall;
-  wire                        flush_decode = 0;
+  // wire                        execute_flush;
   wire                        decode_flush;
-
 
   decode decode_inst (
       .clk(clk),
@@ -476,10 +516,12 @@ module execute_tb ();
       .next_clk_en(execute_clk_en),
       .stall      (stall_decode),
       .next_stall (decode_stall),
-      .flush      (flush_decode),
+      .flush      (execute_flush),
       .next_flush (decode_flush)
   );
+  // endregion decode
 
+  // region fetch
   wire [31:0] main_memory_instr_addr;
   wire [31:0] main_memory_instr;
   wire        main_memory_instr_req;
@@ -495,9 +537,8 @@ module execute_tb ();
   // reg         execute_change_pc;
   // reg  [31:0] execute_next_pc;
 
-  wire        stall_fetch = decode_stall;
+  wire        stall_fetch = (decode_stall || execute_stall);
   wire        decode_clk_en;
-
 
   fetch #(
       .PC_RESET(PC_RESET)
@@ -524,8 +565,9 @@ module execute_tb ();
       .flush      (decode_flush),
       .next_clk_en(decode_clk_en)
   );
+  // endregion fetch
 
-
+  // region main_memory
   reg         wb_cyc = 0;
   reg         wb_stb = 0;
   reg         wb_wr_en = 0;
@@ -557,4 +599,5 @@ module execute_tb ();
       .wb_stall  (wb_stall),
       .wb_rd_data(wb_rd_data)
   );
+  // endregion main_memory
 endmodule
