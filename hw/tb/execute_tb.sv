@@ -2,6 +2,48 @@
 `define VCD_FILE "./vcds/execute_tb.vcd"
 `define ICARUS_SIM
 
+// `define MEMORY "./hexs/add.hex"
+// `define MEMORY "./hexs/addi.hex"
+// `define MEMORY "./hexs/and.hex"
+// `define MEMORY "./hexs/andi.hex"
+// `define MEMORY "./hexs/auipc.hex"
+// `define MEMORY "./hexs/beq.hex"
+// `define MEMORY "./hexs/bge.hex"
+// `define MEMORY "./hexs/bgeu.hex"
+// `define MEMORY "./hexs/blt.hex"
+// `define MEMORY "./hexs/bltu.hex"
+// `define MEMORY "./hexs/bne.hex"
+// `define MEMORY "./hexs/branch_hazard.hex"
+// `define MEMORY "./hexs/data_hazard.hex"
+// `define MEMORY "./hexs/jal.hex"
+// `define MEMORY "./hexs/jalr.hex"
+// `define MEMORY "./hexs/lb.hex"
+// `define MEMORY "./hexs/lbu.hex"
+// `define MEMORY "./hexs/lh.hex"
+// `define MEMORY "./hexs/lhu.hex"
+// `define MEMORY "./hexs/lui.hex"
+// `define MEMORY "./hexs/lw.hex"
+// `define MEMORY "./hexs/no_hazard.hex"
+// `define MEMORY "./hexs/or.hex"
+// `define MEMORY "./hexs/ori.hex"
+// `define MEMORY "./hexs/sb.hex"
+// `define MEMORY "./hexs/sh.hex"
+// `define MEMORY "./hexs/sw.hex"
+// `define MEMORY "./hexs/sll.hex"
+// `define MEMORY "./hexs/slli.hex"
+// `define MEMORY "./hexs/slt.hex"
+// `define MEMORY "./hexs/slti.hex"
+// `define MEMORY "./hexs/sltiu.hex"
+// `define MEMORY "./hexs/sltu.hex"
+// `define MEMORY "./hexs/sra.hex"
+// `define MEMORY "./hexs/srai.hex"
+// `define MEMORY "./hexs/srl.hex"
+// `define MEMORY "./hexs/srli.hex"
+// `define MEMORY "./hexs/sub.hex"
+// `define MEMORY "./hexs/xor.hex"
+// `define MEMORY "./hexs/xori.hex"
+
+
 module execute_tb ();
 
   integer totals = 0;
@@ -61,8 +103,6 @@ module execute_tb ();
   task automatic test_decode;
     begin
       instruction_decode(11);
-      test_execute_change_pc('h18);
-      instruction_decode(11);
       test_writeback_change_pc('h10);
       instruction_decode(11);
     end
@@ -91,13 +131,14 @@ module execute_tb ();
 
         $display("%s", get_opcode_type(decode_opcode_type));
         get_decode_info();
+        get_alu_info();
         $display("\n");
 `endif
       end
     end
   endtask  //automatic
 
-  function string get_opcode_type;
+  function automatic string get_opcode_type;
     input [`OPCODE_WIDTH-1:0] decode_opcode_type;
     integer number_of_bit_1;
     begin
@@ -136,9 +177,15 @@ module execute_tb ();
   endfunction
 
 
-  function string get_alu_type;
+  function automatic string get_alu_info;
+    begin
+      $write("[\033[92mALU\033[00m] %s", get_alu_type(decode_alu_type));
+    end
+  endfunction
+
+
+  function automatic string get_alu_type;
     input [`ALU_WIDTH-1:0] decode_alu_type;
-    input [2:0] decode_funct3;
     begin
       if (decode_alu_type[`ADD]) get_alu_type = "\033[92mADD\033[00m";
       else if (decode_alu_type[`SUB]) get_alu_type = "\033[92mSUB\033[00m";
@@ -158,7 +205,7 @@ module execute_tb ();
     end
   endfunction
 
-  function string get_decode_info;
+  function automatic string get_decode_info;
     begin
       // REG
       if (decode_opcode_type[`RTYPE]) begin
@@ -167,8 +214,8 @@ module execute_tb ();
         $write(" x%1d, x%1d, x%1d", decode_r_rd, decode_r_rs1, decode_r_rs2);
         // IMM
       end else if (decode_opcode_type[`ITYPE]) begin
-        $write("%s\033[92mI\033[00m x%1d, x%1d, %1d", get_alu_type(decode_alu_type, decode_funct3),
-               decode_r_rd, decode_r_rs1, decode_imm);
+        $write("%s\033[92mI\033[00m x%1d, x%1d, %1d", get_alu_type(decode_alu_type), decode_r_rd,
+               decode_r_rs1);
         // LOAD
       end else if (decode_opcode_type[`LOAD]) begin
         if (decode_funct3 == `FUNCT3_LB) $write("\033[92mLB\033[00m");
@@ -212,14 +259,15 @@ module execute_tb ();
       end else
       // SYSTEM
       if (decode_opcode_type[`SYSTEM]) begin
-        // TODO
+        $write("???");
       end else
       // FENCE
       if (decode_opcode_type[`FENCE]) begin
-        // TODO
+        $write("???");
       end else begin
-        // TODO
+        $write("???");
       end
+      $write("\n");
     end
   endfunction
 
@@ -249,24 +297,6 @@ module execute_tb ();
         );
 `endif
       end
-    end
-  endtask  //automatic
-
-  task automatic test_execute_change_pc;
-    input [31:0] next_pc;
-    begin
-      @(negedge clk);
-      // execute_change_pc <= 1;
-      // execute_next_pc   <= next_pc;
-      @(posedge clk);
-      #(CLK_PERIOD_QUAR);
-      // execute_change_pc <= 0;
-`ifdef DETAILS
-      $display(  //
-          "\033[94m>>> fetch_pc changed to %1d due to Execute\033[00m",  //
-          next_pc  //
-      );
-`endif
     end
   endtask  //automatic
 
