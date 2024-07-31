@@ -4,6 +4,7 @@
 `define VCD_FILE "./vcds/fetch_tb.vcd"
 `define MEMORY "./hexs/add.hex"
 // `define DETAILS
+`define ICARUS_SIM
 
 module fetch_tb ();
 
@@ -19,8 +20,10 @@ module fetch_tb ();
   localparam MEMORY_DEPTH = MEMORY_BYTES / 4;
 
   initial begin
+`ifdef ICARUS_SIM
     $dumpfile(`VCD_FILE);
     $dumpvars;
+`endif
   end
 
   parameter CLK_PERIOD = 10;  // 100 MHz clk

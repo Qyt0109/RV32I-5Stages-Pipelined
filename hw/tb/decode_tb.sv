@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
 `define VCD_FILE "./vcds/decode_tb.vcd"
+`define ICARUS_SIM
 
 module decode_tb ();
 
@@ -16,8 +17,10 @@ module decode_tb ();
   localparam MEMORY_DEPTH = MEMORY_BYTES / 4;
 
   initial begin
+`ifdef ICARUS_SIM
     $dumpfile(`VCD_FILE);
     $dumpvars;
+`endif
   end
 
   parameter CLK_PERIOD = 10;  // 100 MHz clk
@@ -132,7 +135,7 @@ module decode_tb ();
     end
   endfunction
 
-  
+
   function string get_alu_type;
     input [`ALU_WIDTH-1:0] decode_alu_type;
     input [2:0] decode_funct3;
@@ -191,21 +194,22 @@ module decode_tb ();
         else if (decode_funct3 == `FUNCT3_LTU) $write("\033[92mBLTU\033[00m");
         else if (decode_funct3 == `FUNCT3_GEU) $write("\033[92mBGEU\033[00m");
         else $write("\033[91mInvalid\033[00m");
-        $write(" x%1d, x%1d, %1d", decode_r_rs1, decode_r_rs2, decode_imm);
+        $write(" x%1d, x%1d, %1d", decode_r_rs1, decode_r_rs2, $signed(decode_imm));
         // JAL
       end else if (decode_opcode_type[`JAL]) begin
-        $write("\033[92mJAL\033[00m x%1d, %1d", decode_r_rd, decode_imm);
+        $write("\033[92mJAL\033[00m x%1d, %1d", decode_r_rd, $signed(decode_imm));
         // JALR
       end else if (decode_opcode_type[`JALR]) begin
-        $write("\033[92mJALR\033[00m x%1d, x%1d, %1d", decode_r_rd, decode_r_rs1, decode_imm);
+        $write("\033[92mJALR\033[00m x%1d, x%1d, %1d", decode_r_rd, decode_r_rs1, $signed(
+                                                                                      decode_imm));
       end else
       // LUI
       if (decode_opcode_type[`LUI]) begin
-        $write("\033[92mLUI\033[00m x%1d, %1d", decode_r_rd, decode_imm);
+        $write("\033[92mLUI\033[00m x%1d, %1d", decode_r_rd, $signed(decode_imm));
       end else
       // AUIPC
       if (decode_opcode_type[`AUIPC]) begin
-        $write("\033[92mAUIPC\033[00m x%1d, %1d", decode_r_rd, decode_imm);
+        $write("\033[92mAUIPC\033[00m x%1d, %1d", decode_r_rd, $signed(decode_imm) >>> 12);
       end else
       // SYSTEM
       if (decode_opcode_type[`SYSTEM]) begin
@@ -299,26 +303,26 @@ module decode_tb ();
     end
   endtask  //automatic
 
-  reg                                clk;
-  reg                                rst;
+  reg                         clk;
+  reg                         rst;
 
-  wire        [                31:0] decode_pc;
-  wire        [                 4:0] decode_rs1;
-  wire        [                 4:0] decode_r_rs1;
-  wire        [                 4:0] decode_rs2;
-  wire        [                 4:0] decode_r_rs2;
-  wire        [                 4:0] decode_r_rd;
-  wire signed [                31:0] decode_imm;
-  wire        [                 2:0] decode_funct3;
-  wire        [      `ALU_WIDTH-1:0] decode_alu_type;
-  wire        [   `OPCODE_WIDTH-1:0] decode_opcode_type;
-  wire        [`EXCEPTION_WIDTH-1:0] decode_exception;
+  wire [                31:0] decode_pc;
+  wire [                 4:0] decode_rs1;
+  wire [                 4:0] decode_r_rs1;
+  wire [                 4:0] decode_rs2;
+  wire [                 4:0] decode_r_rs2;
+  wire [                 4:0] decode_r_rd;
+  wire [                31:0] decode_imm;
+  wire [                 2:0] decode_funct3;
+  wire [      `ALU_WIDTH-1:0] decode_alu_type;
+  wire [   `OPCODE_WIDTH-1:0] decode_opcode_type;
+  wire [`EXCEPTION_WIDTH-1:0] decode_exception;
 
-  wire                               execute_clk_en;
-  wire                               stall_decode = 0;
-  wire                               decode_stall;
-  wire                               flush_decode = 0;
-  wire                               decode_flush;
+  wire                        execute_clk_en;
+  wire                        stall_decode = 0;
+  wire                        decode_stall;
+  wire                        flush_decode = 0;
+  wire                        decode_flush;
 
 
   decode decode_inst (

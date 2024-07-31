@@ -5,6 +5,7 @@
 `define VCD_FILE "./vcds/regs_tb.vcd"
 
 // `define DETAILS
+`define ICARUS_SIM
 
 module regs_tb ();
 
@@ -12,8 +13,10 @@ module regs_tb ();
   integer fails = 0;
 
   initial begin
+`ifdef ICARUS_SIM
     $dumpfile(`VCD_FILE);
     $dumpvars;
+`endif
   end
 
   initial begin
