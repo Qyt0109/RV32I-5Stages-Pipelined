@@ -1,5 +1,4 @@
-`define ZERO_REG_ADDR 0
-`define ZERO_REG_DATA 0
+`include "rv32i_header.vh"
 
 module regs (
     input clk,

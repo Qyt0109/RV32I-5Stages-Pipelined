@@ -1,3 +1,5 @@
+`define ZERO_REG_ADDR 0
+`define ZERO_REG_DATA 0
 
 // region decode
 `define ALU_WIDTH 14
