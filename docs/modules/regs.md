@@ -4,12 +4,21 @@
 ## Diagram
 
 ![Diagram](regs.svg "Diagram")
+## Description
+
+ 
+![alt text](wavedrom_8xQX0.svg "title") 
+
+ 
+![alt text](wavedrom_zGla1.svg "title") 
+
+
 ## Ports
 
 | Port name   | Direction | Type   | Description                                |
 | ----------- | --------- | ------ | ------------------------------------------ |
-| clk         | input     |        |                                            |
-| rst         | input     |        |                                            |
+| clk         | input     |        | positive edge triggered system clock       |
+| rst         | input     |        | asynchronous reset                         |
 | rs_rd_en    | input     |        | source registers read enable               |
 | rs1         | input     | [4:0]  | source register 1 address                  |
 | rs2         | input     | [4:0]  | source register 2 address                  |
@@ -24,11 +33,14 @@
 | ---------- | ---------- | --------------------------------------------------- |
 | x          | reg [31:0] | regs from x1 to x31 (x0 is hard-wired with 0 value) |
 | r_rs1      | reg [4:0]  | registered rs1                                      |
-| r_rs2      | reg [4:0]  |                                                     |
-| need_write | wire       |                                                     |
-| i          | integer    |                                                     |
+| r_rs2      | reg [4:0]  | registered rs2                                      |
+| need_write | wire       | only need to write if not try to write to x0 (zero) |
 ## Processes
 - sync_read_process: ( @(posedge clk, posedge rst) )
   - **Type:** always
+  - **Description**
+  syn read with clk 
 - sync_write_process: ( @(posedge clk, posedge rst) )
   - **Type:** always
+  - **Description**
+  syn write with clk and only write if [Stage 5] (Writeback) is preivously enable. 
