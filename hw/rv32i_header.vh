@@ -37,3 +37,14 @@
 `define EBREAK 2
 `define MRET 3
 // endregion decode
+
+`define FUNCT3_LOAD_STORE_BYTE 3'b000
+`define FUNCT3_LOAD_STORE_HALF 3'b001
+`define FUNCT3_LOAD_STORE_WORD 3'b010
+`define FUNCT3_LOAD_BYTE_U 3'b100
+`define FUNCT3_LOAD_HALF_U 3'b101
+
+`define BYTE_SIGN_EXPAND_BITS 24
+`define BYTE_SIGN_BIT 7
+`define HALF_SIGN_EXPAND_BITS 16
+`define HALF_SIGN_BIT 15

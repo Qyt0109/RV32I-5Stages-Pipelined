@@ -21,5 +21,6 @@
 # cat logs/decode.txt
 
 # execute
-compile_verilog rtl/decode.sv rtl/fetch.sv rtl/main_memory.sv rtl/regs.sv rtl/execute.sv tb/execute_tb.sv -DDETAILS > logs/execute.txt
+# compile_verilog rtl/decode.sv rtl/fetch.sv rtl/main_memory.sv rtl/regs.sv rtl/forward.sv rtl/execute.sv tb/execute_tb.sv -DDETAILS -DINIT_MEM > logs/execute.txt
+compile_verilog rtl/decode.sv rtl/fetch.sv rtl/main_memory.sv rtl/regs.sv rtl/forward.sv rtl/execute.sv tb/execute_tb.sv -DDETAILS > logs/execute.txt
 cat logs/execute.txt

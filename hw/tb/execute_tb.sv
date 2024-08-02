@@ -1,12 +1,14 @@
 `timescale 1ns / 1ps
 `define VCD_FILE "./vcds/execute_tb.vcd"
 `define ICARUS_SIM
+`define INIT_MEM
 
+`ifdef INIT_MEM
 // `define MEMORY "./hexs/add.hex"
 // `define MEMORY "./hexs/addi.hex"
 // `define MEMORY "./hexs/and.hex"
 // `define MEMORY "./hexs/andi.hex"
-// `define MEMORY "./hexs/auipc.hex"
+`define MEMORY "./hexs/auipc.hex"
 // `define MEMORY "./hexs/beq.hex"
 // `define MEMORY "./hexs/bge.hex"
 // `define MEMORY "./hexs/bgeu.hex"
@@ -42,7 +44,7 @@
 // `define MEMORY "./hexs/sub.hex"
 // `define MEMORY "./hexs/xor.hex"
 // `define MEMORY "./hexs/xori.hex"
-
+`endif
 
 module execute_tb ();
 
@@ -71,12 +73,18 @@ module execute_tb ();
   always #(CLK_PERIOD_HALF) clk = !clk;
 
   initial begin
-    clk                        <= 0;
-    rst                        <= 0;
-    writeback_change_pc        <= 0;
-    writeback_next_pc          <= 0;
+    clk                 <= 0;
+    rst                 <= 0;
+    writeback_change_pc <= 0;
+    writeback_next_pc   <= 0;
     // execute_change_pc          <= 0;
     // execute_next_pc            <= 0;
+`ifdef MEMORY
+    $readmemh(`MEMORY, main_memory_inst.memory);
+`else
+    for (integer i = 0; i < MEMORY_DEPTH; i = i + 1) begin
+      main_memory_inst.memory[i] <= 0;
+    end
     main_memory_inst.memory[0] <= 'h402081b3;  // sub  x3, x1, x2      [RTYPE]
     main_memory_inst.memory[1] <= 'hf6a04113;  // xori x2, x0, -150    [ITYPE]
     main_memory_inst.memory[2] <= 'h00008103;  // lb   x2,  0(x1)      [LOAD]
@@ -87,14 +95,20 @@ module execute_tb ();
     main_memory_inst.memory[7] <= 'habcde097;  // auipc x1, -344866    [AUIPC]
     main_memory_inst.memory[8] <= 'h30556473;  // csrrsi x8, mtvec, 10 [SYSTEM]
     main_memory_inst.memory[9] <= 'h0ff0000f;  // fence iorw, iorw     [FENCE]
-    for (integer i = 10; i < MEMORY_DEPTH; i = i + 1) begin
-      main_memory_inst.memory[i] <= 0;
-    end
+`endif
   end
 
   initial begin
     // Reset
     reset(1);
+`ifndef MEMORY
+    for (integer i = 1; i < 32; i = i + 1) begin
+      regs_inst.x[i] = i;
+    end
+`endif
+    for (integer i = 1; i < 32; i = i + 1) begin
+      $display("x[%2d] = %d", i, regs_inst.x[i]);
+    end
     // Test fetch, decode and change pc
     test_decode();
     $finish;
@@ -133,9 +147,8 @@ module execute_tb ();
         $display();
 
         $display(  //
-            "%s +++ %s",  //
-            get_opcode_type(decode_opcode_type),  //
-            get_alu_type(decode_opcode_type)  //
+            "%s",  //
+            get_opcode_type(decode_opcode_type)
         );
         get_decode_info();
         get_alu_info();
@@ -187,7 +200,12 @@ module execute_tb ();
   function automatic string get_alu_info;
     begin
       $write("[\033[92mALU\033[00m]");
-      $write(" result = %1d", execute_result);
+      $write(  //
+          " prev op_a = %1d, prev op_b = %1d, curr result = %1d",  //
+          $signed(execute_inst.op_a),  //
+          $signed(execute_inst.op_b),  //
+          $signed(execute_result)  //
+      );
     end
   endfunction
 
@@ -232,14 +250,14 @@ module execute_tb ();
         else if (decode_funct3 == `FUNCT3_LHU) $write("\033[92mLHU\033[00m");
         else if (decode_funct3 == `FUNCT3_LW) $write("\033[92mLW\033[00m");
         else $write("\033[91mInvalid\033[00m");
-        $write(" x%1d, %1d(x%1d)", decode_r_rd, decode_imm, decode_r_rs1);
+        $write(" x%1d, %1d(x%1d)", decode_r_rd, $signed(decode_imm), decode_r_rs1);
         // STORE
       end else if (decode_opcode_type[`STORE]) begin
         if (decode_funct3 == `FUNCT3_SB) $write("\033[92mSB\033[00m");
         else if (decode_funct3 == `FUNCT3_SH) $write("\033[92mSH\033[00m");
         else if (decode_funct3 == `FUNCT3_SW) $write("\033[92mSW\033[00m");
         else $write("\033[91mInvalid\033[00m");
-        $write(" x%1d, %1d(x%1d)", decode_r_rs2, decode_imm, decode_r_rs1);
+        $write(" x%1d, %1d(x%1d)", decode_r_rs2, $signed(decode_imm), decode_r_rs1);
         // BRANCH
       end else if (decode_opcode_type[`BRANCH]) begin
         if (decode_funct3 == `FUNCT3_EQ) $write("\033[92mBEQ\033[00m");
@@ -249,21 +267,22 @@ module execute_tb ();
         else if (decode_funct3 == `FUNCT3_LTU) $write("\033[92mBLTU\033[00m");
         else if (decode_funct3 == `FUNCT3_GEU) $write("\033[92mBGEU\033[00m");
         else $write("\033[91mInvalid\033[00m");
-        $write(" x%1d, x%1d, %1d", decode_r_rs1, decode_r_rs2, decode_imm);
+        $write(" x%1d, x%1d, %1d", decode_r_rs1, decode_r_rs2, $signed(decode_imm));
         // JAL
       end else if (decode_opcode_type[`JAL]) begin
-        $write("\033[92mJAL\033[00m x%1d, %1d", decode_r_rd, decode_imm);
+        $write("\033[92mJAL\033[00m x%1d, %1d", decode_r_rd, $signed(decode_imm));
         // JALR
       end else if (decode_opcode_type[`JALR]) begin
-        $write("\033[92mJALR\033[00m x%1d, x%1d, %1d", decode_r_rd, decode_r_rs1, decode_imm);
+        $write("\033[92mJALR\033[00m x%1d, x%1d, %1d", decode_r_rd, decode_r_rs1, $signed(
+                                                                                      decode_imm));
       end else
       // LUI
       if (decode_opcode_type[`LUI]) begin
-        $write("\033[92mLUI\033[00m x%1d, %1d", decode_r_rd, decode_imm);
+        $write("\033[92mLUI\033[00m x%1d, %1d", decode_r_rd, $signed(decode_imm));
       end else
       // AUIPC
       if (decode_opcode_type[`AUIPC]) begin
-        $write("\033[92mAUIPC\033[00m x%1d, %1d", decode_r_rd, decode_imm);
+        $write("\033[92mAUIPC\033[00m x%1d, %1d", decode_r_rd, $signed(decode_imm) >>> 12);
       end else
       // SYSTEM
       if (decode_opcode_type[`SYSTEM]) begin
@@ -349,10 +368,10 @@ module execute_tb ();
   // reg [4:0] decode_r_rs1;
   wire [                 4:0] execute_rs1;
 
-  reg  [                31:0] forward_rs1_data = 0;  // NO FW
+  // reg  [                31:0] forward_rs1_data = 0;  // NO FW
   wire [                31:0] execute_rs1_data;
 
-  reg  [                31:0] forward_rs2_data = 0;  // NO FW
+  // reg  [                31:0] forward_rs2_data = 0;  // NO FW
   wire [                31:0] execute_rs2_data;
 
   // reg [4:0] decode_r_rd;
@@ -385,7 +404,7 @@ module execute_tb ();
   // reg                         clk_en;
   wire                        memory_clk_en;
   reg                         stall_execute = 0;
-  reg                         execute_force_stall = 0;
+  // reg                         execute_force_stall = 0;
   wire                        execute_stall;
   reg                         memory_flush = 0;
   wire                        execute_flush;
@@ -444,22 +463,57 @@ module execute_tb ();
   // endregion execute
 
   // region forward
+  // reg [31:0] regs_rs1_rd_data;
+  // reg [31:0] regs_rs2_rd_data;
 
-  
+  // reg [4:0] decode_r_rs1;
+  // reg [4:0] decode_r_rs2;
+
+  wire        execute_force_stall;
+
+  wire [31:0] forward_rs1_data;
+  wire [31:0] forward_rs2_data;
+
+  // reg  [ 4:0] execute_rd;
+  // reg         execute_rd_wr_en;
+  // reg  [31:0] execute_rd_wr_data;
+  // reg         execute_rd_valid;
+  // reg         memory_clk_en;
+
+  forward forward_inst (
+      .regs_rs1_rd_data(regs_rs1_rd_data),
+      .regs_rs2_rd_data(regs_rs2_rd_data),
+
+      .decode_r_rs1(decode_r_rs1),
+      .decode_r_rs2(decode_r_rs2),
+
+      .execute_force_stall(execute_force_stall),
+
+      .forward_rs1_data(forward_rs1_data),
+      .forward_rs2_data(forward_rs2_data),
+
+      .execute_rd        (execute_rd),
+      .execute_rd_wr_en  (execute_rd_wr_en),
+      .execute_rd_wr_data(execute_rd_wr_data),
+      .execute_rd_valid  (execute_rd_valid),
+      .memory_clk_en     (memory_clk_en)
+  );
+
+
 
   // endregion forward
 
   // region regs
-  reg rs_rd_en = (decode_clk_en && (!decode_stall));
+  wire rs_rd_en = (decode_clk_en && (!decode_stall));
   // reg [4:0] rs1;
   // reg [4:0] rs2;
 
-  reg [4:0] rd = 0;  // TODO writeback rd address
-  reg [31:0] rd_wr_data = 0;  // TODO writeback rd data
-  reg rd_wr_en = 0;  // TODO writeback write enable
+  // reg [4:0] rd = 0;
+  // reg [31:0] rd_wr_data = 0;
+  // reg rd_wr_en = 0;
 
-  wire [31:0] rs1_rd_data;  // TODO connect to forward module
-  wire [31:0] rs2_rd_data;  // TODO connect to forward module
+  wire [31:0] regs_rs1_rd_data;
+  wire [31:0] regs_rs2_rd_data;
 
   regs regs_inst (
       .clk(clk),
@@ -469,12 +523,12 @@ module execute_tb ();
       .rs1     (decode_rs1),
       .rs2     (decode_rs2),
 
-      .rd        (rd),
-      .rd_wr_data(rd_wr_data),
-      .rd_wr_en  (rd_wr_en),
+      .rd        (execute_rd),
+      .rd_wr_data(execute_rd_wr_data),
+      .rd_wr_en  (execute_rd_wr_en),
 
-      .rs1_rd_data(rs1_rd_data),
-      .rs2_rd_data(rs2_rd_data)
+      .rs1_rd_data(regs_rs1_rd_data),
+      .rs2_rd_data(regs_rs2_rd_data)
   );
 
   // endregion regs

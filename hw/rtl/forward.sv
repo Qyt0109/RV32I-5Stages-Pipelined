@@ -21,12 +21,12 @@ module forward (
     input        execute_rd_wr_en,    // high if want to write to rd address
     input [31:0] execute_rd_wr_data,  // value to be written back to destination register
     input        execute_rd_valid,    // high if rd is already valid (not LOAD nor CSR instructions)
-    input        memory_clk_en,       // memory_clk_en
+    input        memory_clk_en       // memory_clk_en
 
     // [Memory/Writeback] forwarding
     // TODO
 
-    output dummy  // NOTHING HERE, JUST A DUMMY SIGNAL
+    // output dummy  // NOTHING HERE, JUST A DUMMY SIGNAL
 );
 
   /* Data hazard:
