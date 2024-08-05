@@ -19,8 +19,8 @@
 //!     {name: "clk", wave: "P......", period: 1},
 //!     [
 //!       "handshake",
-//!       {name: "instr_stb", wave: "0.1..0.."},
-//!       {name: "instr_ack", wave: "0..1..0."}
+//!       {name: "instr_stb", wave: "0.1..0."},
+//!       {name: "instr_ack", wave: "0..1..0"}
 //!     ],
 //!     {},
 //!     [
