@@ -4,10 +4,10 @@
 ## Modules
 ### Main Memory
 
-|[Details](./docs/modules/main_memory.md)|[Code](./hw/rtl/main_memory.sv)|
+|[Details](./docs/modules/main_memory/main_memory.md)|[Code](./hw/rtl/main_memory.sv)|
 |-|-|
 
 ### Base Registers
 
-|[Details](./docs/modules/regs.md)|[Code](./hw/rtl/regs.sv)|
+|[Details](./docs/modules/regs/regs.md)|[Code](./hw/rtl/regs.sv)|
 |-|-|
