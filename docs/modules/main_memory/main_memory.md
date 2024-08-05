@@ -21,11 +21,11 @@
  ```
  In the example below, passing instr_addr = h'4 (*b'100*) or instr_addr = h'5 (*b'101*) accesses the same memory slot at h'4 (*b'100*).
  
-![alt text](wavedrom_KZFQ0.svg "title") 
+![alt text](wavedrom_2KF60.svg "title") 
 
  ###### Data in memory:
  
-![alt text](wavedrom_pz921.svg "title") 
+![alt text](wavedrom_CdZM1.svg "title") 
 
  ### Reading data from memory
  When reading from memory, ignore the last 2 bits of the address because memory is accessed by word.
@@ -46,11 +46,11 @@
  ```
  In the example below, the **wb_rd_data** at **clk** = 3, 6, 7 is valid, any other data changes should be ignore.
  
-![alt text](wavedrom_vcqy2.svg "title") 
+![alt text](wavedrom_6Xj62.svg "title") 
 
  ###### Data in memory:
  
-![alt text](wavedrom_zVeV3.svg "title") 
+![alt text](wavedrom_bD2R3.svg "title") 
 
  ### Writing data to memory
  When writing to memory, ignore the last 2 bits of the address because memory is accessed by word.
@@ -84,7 +84,7 @@
   end
   ```
  
-![alt text](wavedrom_pGMH4.svg "title") 
+![alt text](wavedrom_Nu7f4.svg "title") 
 
  [1]: Write h'--cd---- to h'30 (h'cd to h'32)
 
@@ -93,7 +93,7 @@
  [3]: Write h'12345678 to h'38
  ###### Data in memory:
  
-![alt text](wavedrom_r47Z5.svg "title") 
+![alt text](wavedrom_MRnt5.svg "title") 
 
 
 

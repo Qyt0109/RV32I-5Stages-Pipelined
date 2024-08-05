@@ -82,7 +82,7 @@
 //!     {},
 //!   ],
 //!   head: {
-//!     text: "read instruction",
+//!     text: "read data",
 //!     tick: 0
 //!   },
 //!   config: { hscale: 1}
@@ -147,7 +147,7 @@
 //!     {},
 //!   ],
 //!   head: {
-//!     text: "read instruction",
+//!     text: "write data",
 //!     tick: 0
 //!   },
 //!   config: { hscale: 1}
