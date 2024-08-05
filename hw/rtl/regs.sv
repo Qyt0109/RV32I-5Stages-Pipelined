@@ -1,19 +1,28 @@
 `include "rv32i_header.vh"
 
+// region Description
+
+//! The base registers in RISC-V include 32 general-purpose registers (x0-x31). These registers are used for various operations
+//! like arithmetic, logical, address calculations, and holding temporary data. Register x0 is hardwired to zero.
+
 //! { signal: [
 //!  { name: "clk",         wave: "P......" },
 //!  { name: "rd_wr_en",    wave: "0.1.0.."},
 //!  ["write rd",
 //!     { name: "rd [ 4:0]",   wave: "x4974x.", data: ["03", "00", "04", "12", "07"] },
-//!     { name: "rd_wr_data [31:0]", wave: "x.7....", data: ["97"] },
+//!     { name: "rd_wr_data [31:0]", wave: "7......", data: ["97"] },
 //!  ],
-//!  { name: "info", wave: "d...7..", data: ["writed 97 to x[04]"] }
+//!  { name: "info", wave: "x..97x.", data: ["[1]", "[2]"] }
 //! ],
 //!  head:{
 //!     text:'Write to rd',
 //!     tick:0,
 //!     every:2
-//!   }}
+//!   }
+//! }
+
+//! [1]: Write to x0 so do nothing,
+//! [2]: Write 97 to x[04]
 
 //! { signal: [
 //!  { name: "clk",         wave: "P........" },
@@ -30,9 +39,11 @@
 //!     every:2
 //!   }}
 
+// endregion Description
+
 module regs (
-    input clk, //! positive edge triggered system clock
-    input rst, //! asynchronous reset
+    input clk,  //! positive edge triggered system clock
+    input rst,  //! asynchronous reset
 
     input       rs_rd_en,  //! source registers read enable
     input [4:0] rs1,       //! source register 1 address
@@ -69,8 +80,8 @@ module regs (
   end
 
   // if read from x0, return 0 else return x[rs]
-  assign rs1_rd_data = (r_rs1 == `ZERO_REG_ADDR) ? `ZERO_REG_DATA : x[r_rs1]; // read data from rs1
-  assign rs2_rd_data = (r_rs2 == `ZERO_REG_ADDR) ? `ZERO_REG_DATA : x[r_rs2]; // read data from rs2
+  assign rs1_rd_data = (r_rs1 == `ZERO_REG_ADDR) ? `ZERO_REG_DATA : x[r_rs1];  // read data from rs1
+  assign rs2_rd_data = (r_rs2 == `ZERO_REG_ADDR) ? `ZERO_REG_DATA : x[r_rs2];  // read data from rs2
   // endregion read from x
 
   // region write to x
@@ -78,7 +89,7 @@ module regs (
   wire need_write = rd_wr_en && (rd != `ZERO_REG_ADDR);
 
   integer i;
-  //! syn write with clk and only write if [Stage 5] (Writeback) is preivously enable.
+  //! syn write with clk and only write if Stage 5 ([writeback](../../hw/rtl/writeback.sv)) is preivously enable.
   always @(posedge clk, posedge rst) begin : sync_write_process
     if (rst) begin : reset_x
       // reset all base registers

@@ -6,11 +6,13 @@
 ![Diagram](regs.svg "Diagram")
 ## Description
 
+ The base registers in RISC-V include 32 general-purpose registers (x0-x31). These registers are used for various operations
+ like arithmetic, logical, address calculations, and holding temporary data. Register x0 is hardwired to zero.
  
-![alt text](wavedrom_8xQX0.svg "title") 
+![alt text](wavedrom_DWjQ0.svg "title") 
 
  
-![alt text](wavedrom_zGla1.svg "title") 
+![alt text](wavedrom_Xef91.svg "title") 
 
 
 ## Ports
@@ -43,4 +45,4 @@
 - sync_write_process: ( @(posedge clk, posedge rst) )
   - **Type:** always
   - **Description**
-  syn write with clk and only write if [Stage 5] (Writeback) is preivously enable. 
+  syn write with clk and only write if Stage 5 ([writeback](../../hw/rtl/writeback.sv)) is preivously enable. 
