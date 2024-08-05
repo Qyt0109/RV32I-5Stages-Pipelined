@@ -139,7 +139,7 @@
 //!     {},
 //!     [
 //!       "access",
-//!       {name: "wb_addr [ADDR_WIDTH-1:0]", wave: "x.5..5.55..", data: ["h'30", "h'35", "h'3A", "h'30", "h'34"]},
+//!       {name: "wb_addr [ADDR_WIDTH-1:0]", wave: "x.5..55..5.", data: ["h'30", "h'35", "h'3A", "h'30", "h'34"]},
 //!       {name: "wb_wr_sel [3:0]",         wave: "x.5.5.5...x", data: ["b'0100", "b'1100", "b'1111", "b'0010"]},
 //!       {name: "wb_wr_data [31:0]",        wave: "x.5..5...5.", data: ["h'abcdef01", "h'12345678", "h'ef120021", "h'ab", "h'cd"]},
 //!       {name: "info",                     wave: "d..7d.77d..", data: ["[1]", "[2]", "[3]", "[4]", "[5]"]},
