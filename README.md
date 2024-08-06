@@ -5,7 +5,7 @@ Tracking tasks:
 
 ||Design|Behavior<br>Simulation Test|Documentation|
 |:-|:-:|:-:|:-:|
-|regs|[x]|[x]|[x]|
+|regs|-[x]|-[x]|-[x]|
 |main_memory|[x]|[x]|[x]|
 |memory_wrapper|[ ]|[ ]|[ ]|
 |forward|[x]|[x]|[ ]|
