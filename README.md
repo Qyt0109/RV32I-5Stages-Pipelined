@@ -1,7 +1,6 @@
 # RV32I 5 Stages Pipelined
-### Working on Behavior Simulation test for each module
 
-Tracking tasks:
+## Tracking tasks:
 
 ||Design|Behavior<br>Simulation Test|Documentation|
 |:-|:-:|:-:|:-:|
@@ -18,6 +17,12 @@ Tracking tasks:
 |<br>|
 |core|:white_heart:|:white_heart:|:white_heart:|
 |soc (top module)|:white_heart:|:white_heart:|:white_heart:|
+|<br>|
+|csr (ZICSR)|:white_heart:|:white_heart:|:white_heart:|
+|Integer Multiplication<br>and Division (M)|:white_heart:|:white_heart:|:white_heart:|
+|Bit Manipulation<br>and Division (B)|:white_heart:|:white_heart:|:white_heart:|
+
+
 
 ## Modules
 ### Main Memory
