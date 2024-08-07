@@ -1,7 +1,8 @@
 `timescale 1ns / 1ps
+
 `define VCD_FILE "./vcds/execute_tb.vcd"
 `define ICARUS_SIM
-`define INIT_MEM
+// `define INIT_MEM
 
 `ifdef INIT_MEM
 // `define MEMORY "./hexs/add.hex"
@@ -44,6 +45,8 @@
 // `define MEMORY "./hexs/sub.hex"
 // `define MEMORY "./hexs/xor.hex"
 // `define MEMORY "./hexs/xori.hex"
+`else
+`define MEMORY ""
 `endif
 
 module execute_tb ();
@@ -53,9 +56,7 @@ module execute_tb ();
 
   localparam PC_RESET = 0;
 
-  localparam TEST_INSTRUCTION = 32'h09600113;
-
-  parameter MEMORY_HEX = "";
+  parameter MEMORY_HEX = `MEMORY;
   parameter MEMORY_BYTES = 1024 * 4;
   localparam ADDR_WIDTH = $clog2(MEMORY_BYTES);
   localparam MEMORY_DEPTH = MEMORY_BYTES / 4;
@@ -79,7 +80,7 @@ module execute_tb ();
     writeback_next_pc   <= 0;
     // execute_change_pc          <= 0;
     // execute_next_pc            <= 0;
-`ifdef MEMORY
+`ifdef INIT_MEM
     $readmemh(`MEMORY, main_memory_inst.memory);
 `else
     for (integer i = 0; i < MEMORY_DEPTH; i = i + 1) begin
@@ -101,7 +102,7 @@ module execute_tb ();
   initial begin
     // Reset
     reset(1);
-`ifndef MEMORY
+`ifndef INIT_MEM
     for (integer i = 1; i < 32; i = i + 1) begin
       regs_inst.x[i] = i;
     end
@@ -132,7 +133,7 @@ module execute_tb ();
         instruction_fetch(1, previous_fetch_instr);
 `ifdef DETAILS
         $write(  //
-            "[%sDECODE\033[00m] decode_pc = %4d, decode_instr = \033[96m%8h\033[00m",  //
+            "[%sDECODE\033[00m] decode_pc = \033[96m%4d\033[00m, decode_instr = \033[96m%8h\033[00m",  //
             (|decode_opcode_type) ? "\033[92m" : "\033[91m",  //
             decode_pc, previous_fetch_instr  //
         );
@@ -148,10 +149,9 @@ module execute_tb ();
 
         $display(  //
             "%s",  //
-            get_opcode_type(decode_opcode_type)
-        );
+            get_opcode_type(decode_opcode_type));
         get_decode_info();
-        get_alu_info();
+        get_execute_info();
         $display("\n");
 `endif
       end
@@ -196,12 +196,23 @@ module execute_tb ();
     end
   endfunction
 
+  function automatic string get_execute_info;
+    begin
+      $display(  //
+          "[\033[92mEXECUTE\033[00m] execute_pc = \033[96m%4d\033[00m, execute_instr = \033[96m%8h\033[00m",  //
+          execute_pc,  //
+          main_memory_inst.memory[execute_pc>>2]  //
+      );
+      $display("%s", get_opcode_type(execute_opcode_type));
+      $display("%s", get_alu_info());
+    end
+  endfunction
 
   function automatic string get_alu_info;
     begin
-      $write("[\033[92mALU\033[00m]");
+      $write("\033[92mALU\033[00m:");
       $write(  //
-          " prev op_a = %1d, prev op_b = %1d, curr result = %1d",  //
+          " next op_a = %1d, next op_b = %1d, curr result = %1d",  //
           $signed(execute_inst.op_a),  //
           $signed(execute_inst.op_b),  //
           $signed(execute_result)  //
@@ -313,7 +324,7 @@ module execute_tb ();
         match = (fetch_instr == instr_in_mem);
 `ifdef DETAILS
         $write(  //
-            "[%-6s] fetch_pc  = %4d, instr_fetch  = \033[96m%8h\033[00m",  //
+            "[%-6s] fetch_pc  = \033[96m%4d\033[00m, instr_fetch  = \033[96m%8h\033[00m",  //
             (match) ? "\033[92mFETCH \033[00m" : "\033[91mFETCH \033[00m",  //
             fetch_pc, fetch_instr  //
         );
@@ -534,7 +545,7 @@ module execute_tb ();
   // endregion regs
 
   // region decode
-  // wire [                31:0] decode_pc;
+  wire [                31:0] decode_pc;
   wire [                 4:0] decode_rs1;
   wire [                 4:0] decode_r_rs1;
   wire [                 4:0] decode_rs2;

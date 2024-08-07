@@ -12,7 +12,7 @@
 |fetch|:heart:|:heart:|:white_heart:|
 |decode|:heart:|:heart:|:white_heart:|
 |execute|:heart:|:heart:|:white_heart:|
-|memory|:heart:|:white_heart:|:white_heart:|
+|memory|:heart:|:heart:|:white_heart:|
 |writeback|:white_heart:|:white_heart:|:white_heart:|
 |<br>|
 |core|:white_heart:|:white_heart:|:white_heart:|

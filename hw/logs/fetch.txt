@@ -10,7 +10,7 @@
 [95m Included './rtl/main_memory.sv'[00m
 [95m Included './tb/fetch_tb.sv'[00m
 [96m iverilog command: iverilog -g2012 -o ./iverilog_output_file -DDETAILS ./rtl/fetch.sv ./rtl/main_memory.sv ./tb/fetch_tb.sv[00m
-WARNING: ./rtl/main_memory.sv:40: $readmemh(./hexs/add.hex): Too many words in the file for the requested range [0:255].
+WARNING: ./rtl/main_memory.sv:215: $readmemh(./hexs/add.hex): Too many words in the file for the requested range [0:255].
 Init Memory from ./hexs/add.hex
 VCD info: dumpfile ./vcds/fetch_tb.vcd opened for output.
 VCD warning: $dumpvars: Package ($unit) is not dumpable with VCD.

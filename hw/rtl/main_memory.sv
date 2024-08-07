@@ -77,7 +77,7 @@
 //!     [
 //!       "access",
 //!       {name: "wb_addr [ADDR_WIDTH-1:0]", wave: "x5...5555...", data: ["h'30", "h'34", "h'38", "h'30", "h'34"]},
-//!       {name: "wb_rd_data [31:0]",        wave: "x..5..5555..", data: ["h'ab", "h'cd", "h'ef", "h'ab", "h'cd"]}
+//!       {name: "wb_rd_data [31:0]",        wave: "x.5...5555..", data: ["h'ab", "h'cd", "h'ef", "h'ab", "h'cd"]}
 //!     ],
 //!     {},
 //!   ],

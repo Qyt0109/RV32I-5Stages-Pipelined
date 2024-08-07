@@ -37,12 +37,13 @@
 //!
 //!      // output of [Stage 5 WRITEBACK] is registered so delayed by 1 clk
 //!
-//!      if (need_write) x[rd] <= rd_wr_data;
+//!       if (need_write) x[rd] <= rd_wr_data;
 //!
 //!    end
 //!
 //!  end
 //!  ```
+
 //! { signal: [
 //!  { name: "clk",         wave: "P......" },
 //!  { name: "rd_wr_en",    wave: "0.1.0.."},
@@ -144,7 +145,7 @@ module regs (
   reg [31:0] x[1:31];  //! regs from x1 to x31 (x0 is hard-wired with 0 value)
 
   // region read from x
-  reg [4:0] r_rs1;  //! registered rs1
+  reg [4:0]     r_rs1;  //! registered rs1
   reg [4:0] r_rs2;  //! registered rs2
 
   //! syn read with clk
