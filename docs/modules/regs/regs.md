@@ -10,11 +10,11 @@
  The base registers in RISC-V include 32 general-purpose registers (x0-x31). These registers are used for various operations
  like arithmetic, logical, address calculations, and holding temporary data. Register x0 is hardwired to zero.
  ``` verilog
-   reg [31:0] x[1:31];  //! regs from x1 to x31 (x0 is hard-wired with 0 value)
+    reg [31:0] x[1:31];  //! regs from x1 to x31 (x0 is hard-wired with 0 value)
  ```
  ### Write to reg
  ``` verilog
-  //! only need to write if not try to write to x0 (zero)
+   //! only need to write if not try to write to x0 (zero)
 
   wire need_write = rd_wr_en && (rd != `ZERO_REG_ADDR);
 
@@ -40,23 +40,23 @@
 
       // output of [Stage 5 WRITEBACK] is registered so delayed by 1 clk
 
-      if (need_write) x[rd] <= rd_wr_data;
+       if (need_write) x[rd] <= rd_wr_data;
 
     end
 
   end
   ```
  
-![alt text](wavedrom_aab40.svg "title") 
+![alt text](wavedrom_Iz6H0.svg "title") 
 
  [1]: Write to x0 so do nothing,
  [2]: Write 97 to x[04]
  ### Read from regs
  
-![alt text](wavedrom_qJBJ1.svg "title") 
+![alt text](wavedrom_1TpV1.svg "title") 
 
  ``` verilog
-  reg [4:0] r_rs1;  //! registered rs1
+   reg [4:0] r_rs1;  //! registered rs1
 
   reg [4:0] r_rs2;  //! registered rs2
 

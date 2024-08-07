@@ -24,65 +24,68 @@ module memory (
     input clk,
     input rst,
 
-    input [31:0] execute_rs2_data,  // Data to be stored to memory is always rs2 data
-    input [31:0] execute_result,    // Result from execute (load/store address)
+    input [31:0] execute_rs2_data,  //! Data to be stored to memory is always rs2 data
+    input [31:0] execute_result,    //! Result from execute (load/store address)
 
-    input      [2:0] execute_funct3,  // funct3 from previous stage [STAGE 3 EXECUTE]
-    output reg [2:0] memory_funct3,   // funct3 (byte, halfword, word store/load operation)
+    input      [2:0] execute_funct3,  //! funct3 from previous stage [STAGE 3 EXECUTE]
+    output reg [2:0] memory_funct3,   //! funct3 (byte, halfword, word store/load operation)
 
-    input      [`OPCODE_WIDTH-1:0] execute_opcode_type,  // opcode type from prev [STAGE 3 EXECUTE]
-    output reg [`OPCODE_WIDTH-1:0] memory_opcode_type,   // opcode type
+    input      [`OPCODE_WIDTH-1:0] execute_opcode_type,  //! opcode type from prev [STAGE 3 EXECUTE]
+    output reg [`OPCODE_WIDTH-1:0] memory_opcode_type,   //! opcode type
 
-    input      [31:0] execute_pc,
-    output reg [31:0] memory_pc,
+    input      [31:0] execute_pc,  //! pc from previous stage (execute)
+    output reg [31:0] memory_pc,   //! registered pc for this stage (memory)
 
     // region Base Registers control
-    input             execute_rd_wr_en,    // enable write rd from previous stage [STAGE 3 EXECUTE]
-    output reg        memory_rd_wr_en,     // write rd to the base reg if enabled
-    input      [ 4:0] execute_rd,          // rd write address from previous stage [STAGE 3 EXECUTE]
-    output reg [ 4:0] memory_rd,           // address for destination register
-    input      [31:0] execute_rd_wr_data,  // rd write data from previous stage [STAGE 3 EXECUTE]
-    output reg [31:0] memory_rd_wr_data,   // data to be written back to destination register
+    input             execute_rd_wr_en,    //! enable write rd from previous stage (execute)
+    output reg        memory_rd_wr_en,     //! write rd to the base reg if enabled
+    input      [ 4:0] execute_rd,          //! rd write address from previous stage (execute)
+    output reg [ 4:0] memory_rd,           //! address for destination register
+    input      [31:0] execute_rd_wr_data,  //! rd write data from previous stage (execute)
+    output reg [31:0] memory_rd_wr_data,   //! data to be written back to destination register
     // endregion Base Registers control
 
     // region Data Memory control
-    output reg        main_memory_wb_cyc,      // bus cycle active (1 = normal operation,
-                                               // 0 = all ongoing transaction are to be cancelled)
-    output reg        main_memory_wb_stb,      // request for read/write access to data memory
-    output reg        main_memory_wb_wr_en,    // write-enable (1 = write, 0 = read)
-    output reg [31:0] main_memory_wb_addr,     // data memory address
-    output reg [31:0] main_memory_wb_wr_data,  // data to be stored to memory
-    output reg [ 3:0] main_memory_wb_wr_sel,   // byte select for write {byte3, byte2, byte1, byte0}
-    input             main_memory_wb_ack,      // ack by data memory (high when data to be read is
-                                               // ready or when write data is already written)
-    input             main_memory_wb_stall,    // stall by data memory (1 = data memory is busy)
-    input      [31:0] main_memory_wb_rd_data,  // data retrieve from data memory
+    //! bus cycle active (1 = normal operation, 0 = all ongoing transaction are to be cancelled)
+    output reg        main_memory_wb_cyc,
+    output reg        main_memory_wb_stb,      //! request for read/write access to data memory
+    output reg        main_memory_wb_wr_en,    //! write-enable (1 = write, 0 = read)
+    output reg [31:0] main_memory_wb_addr,     //! data memory address
+    output reg [31:0] main_memory_wb_wr_data,  //! data to be stored to memory
+    //! byte select for write {byte3, byte2, byte1, byte0}
+    output reg [ 3:0] main_memory_wb_wr_sel,
+    //! ack by data memory (high when data to be read is ready or when write data is already written)
+    input             main_memory_wb_ack,
+    input             main_memory_wb_stall,    //! stall by data memory (1 = data memory is busy)
+    input      [31:0] main_memory_wb_rd_data,  //! data retrieve from data memory
     // endregion Data Memory control
 
-    output reg [31:0] memory_data_load,  // data to be loaded to base reg (z-or-s extended)
+    output reg [31:0] memory_data_load,  //! data to be loaded to base reg (z-or-s extended)
 
     // region Pipeline control
-    input      stall_from_execute,  // Execute tell to prepare to stall for load/store instruction
-    input      clk_en,              // control by previous stage [STAGE 3 EXECUTE]
-    output reg next_clk_en,         // clk enable for pipeline stalling
-    input      stall,               // stall this stage
-    output reg next_stall,          // stalls the pipeline
-    input      flush,               // flush this stage
-    output reg next_flush           // flushes previous stages
+    input      stall_from_execute,  //! Execute tell to prepare to stall for load/store instruction
+    input      clk_en,              //! control by previous stage [STAGE 3 EXECUTE]
+    output reg next_clk_en,         //! clk enable for pipeline stalling
+    input      stall,               //! stall this stage
+    output reg next_stall,          //! stalls the pipeline
+    input      flush,               //! flush this stage
+    output reg next_flush           //! flushes previous stages
     // endregion Pipeline control
 );
 
-  reg [31:0] wr_data;  // data to be stored to memory
-  reg [31:0] rd_data;  // data to be loaded to basereg
-  reg [3:0] wr_sel;  // byte mask
-  reg pend_req;  // is there still a pending request (not yet ack req)
-  wire [ 1:0] which_byte = execute_result[1:0];  // last 2 bits of data memory address => which byte to load (0, 1, 2, 3)
-  wire [ 1:0] which_half = execute_result[1];  // 2 bits from lsb of data memory address => which half to load (0, 1)
+  reg  [31:0] wr_data;  //! data to be stored to memory
+  reg  [31:0] rd_data;  //! data to be loaded to basereg
+  reg  [ 3:0] wr_sel;  //! byte mask
+  reg         pend_req;  //! is there still a pending request (not yet ack req)
 
-  wire stall_bit = (stall || next_stall);
+  wire [ 1:0] which_byte = execute_result[1:0];  //! last 2 bits of data memory address => which byte to load (0, 1, 2, 3)
+  wire        which_half = execute_result[1];  //! 2 bits from lsb of data memory address => which half to load (0, 1)
+
+  wire        stall_bit = (stall || next_stall);  //! stall bit for this stage
 
   // region registered the outputs
-  always @(posedge clk, posedge rst) begin
+  //! registed signals for this stage
+  always @(posedge clk, posedge rst) begin : registered_signals
     if (rst) begin
       memory_rd_wr_en      <= 0;
 
@@ -134,7 +137,7 @@ module memory (
       // change based on prev clk en only if not stalled this stage
       else if (!stall_bit) next_clk_en <= clk_en;
       // If this stage is not stalled but next stage is, disable next stage
-      else if (stall) next_clk_en <= 0;
+      else if ((!stall) && next_stall) next_clk_en <= 0;
     end
   end
   // endregion registered the outputs
@@ -149,8 +152,8 @@ module memory (
 
   wire [31:0] rd_data_word = main_memory_wb_rd_data;  // word
 
-  // determine data to be loaded to base regs or stored to data memory
-  always @* begin
+  //! determine data to be loaded to base regs or stored to data memory
+  always @* begin : write_load_data_processing
     // stall while data memory has not yet acknowledged i.e.write data is not yet written or
     // read data is not yet available (no ack yet). Don't stall when need to flush by next stage
     next_stall = (stall_from_execute && clk_en && (!main_memory_wb_ack) || stall) && (!flush);

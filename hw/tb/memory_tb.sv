@@ -1,4 +1,6 @@
 `timescale 1ns / 1ps
+`include "rv32i_header.vh"
+`include "decode_header.vh"
 
 `define VCD_FILE "./vcds/memory_tb.vcd"
 `define ICARUS_SIM
@@ -117,9 +119,9 @@ module memory_tb ();
 
   task automatic test_decode;
     begin
-      instruction_decode(20);
+      instruction_decode(100);
       // test_writeback_change_pc('h10);
-      instruction_decode(20);
+      // instruction_decode(20);
     end
   endtask  //automatic
 
@@ -290,8 +292,7 @@ module memory_tb ();
         $write(" x%1d, x%1d, x%1d", decode_r_rd, decode_r_rs1, decode_r_rs2);
         // IMM
       end else if (decode_opcode_type[`ITYPE]) begin
-        $write("%s\033[92mI\033[00m x%1d, x%1d, %1d", get_alu_type(decode_alu_type), decode_r_rd,
-               decode_r_rs1, $signed(decode_imm));
+        $write("%s\033[92mI\033[00m x%1d, x%1d, %1d", get_alu_type(decode_alu_type), decode_r_rd, decode_r_rs1, $signed(decode_imm));
         // LOAD
       end else if (decode_opcode_type[`LOAD]) begin
         if (decode_funct3 == `FUNCT3_LB) $write("\033[92mLB\033[00m");
@@ -323,8 +324,7 @@ module memory_tb ();
         $write("\033[92mJAL\033[00m x%1d, %1d", decode_r_rd, $signed(decode_imm));
         // JALR
       end else if (decode_opcode_type[`JALR]) begin
-        $write("\033[92mJALR\033[00m x%1d, x%1d, %1d", decode_r_rd, decode_r_rs1, $signed(
-                                                                                      decode_imm));
+        $write("\033[92mJALR\033[00m x%1d, x%1d, %1d", decode_r_rd, decode_r_rs1, $signed(decode_imm));
       end else
       // LUI
       if (decode_opcode_type[`LUI]) begin

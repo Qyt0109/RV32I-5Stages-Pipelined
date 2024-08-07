@@ -4,7 +4,7 @@
 //! When reading from memory, ignore the last 2 bits of the address because memory is accessed by word.
 //! 
 //! ``` verilog
-//!  always @(posedge clk) begin : sync_read_process
+//!   always @(posedge clk) begin : sync_read_process
 //!
 //!    instr_ack  <= instr_stb;  // read ack go high next cycle after receiving stb (request)
 //!
@@ -54,7 +54,7 @@
 //! **wb_ack**: only when ack = 1, **wb_rd_data** is valid
 
 //! ``` verilog
-//!  always @(posedge clk) begin : sync_read_process
+//!   always @(posedge clk) begin : sync_read_process
 //!
 //!    wb_ack     <= (wb_stb && wb_cyc);  // read ack go high next cycle after receiving stb (request)
 //!
@@ -110,7 +110,7 @@
 //! **wb_wr_sel**: select which byte(s) in **wb_wr_data** need to be stored at the coresponding byte slots at the address
 
 //!  ``` verilog
-//!  always @(posedge clk) begin : sync_write_process
+//!   always @(posedge clk) begin : sync_write_process
 //!
 //!    if (wb_wr_en && wb_stb && wb_cyc) begin
 //!

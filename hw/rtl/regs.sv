@@ -6,12 +6,12 @@
 //! like arithmetic, logical, address calculations, and holding temporary data. Register x0 is hardwired to zero.
 
 //! ``` verilog
-//!   reg [31:0] x[1:31];  //! regs from x1 to x31 (x0 is hard-wired with 0 value)
+//!    reg [31:0] x[1:31];  //! regs from x1 to x31 (x0 is hard-wired with 0 value)
 //! ```
 
 //! ### Write to reg
 //! ``` verilog
-//!  //! only need to write if not try to write to x0 (zero)
+//!   //! only need to write if not try to write to x0 (zero)
 //!
 //!  wire need_write = rd_wr_en && (rd != `ZERO_REG_ADDR);
 //!
@@ -81,7 +81,7 @@
 //!   }}
 
 //! ``` verilog
-//!  reg [4:0] r_rs1;  //! registered rs1
+//!   reg [4:0] r_rs1;  //! registered rs1
 //!
 //!  reg [4:0] r_rs2;  //! registered rs2
 //!
@@ -145,7 +145,7 @@ module regs (
   reg [31:0] x[1:31];  //! regs from x1 to x31 (x0 is hard-wired with 0 value)
 
   // region read from x
-  reg [4:0]     r_rs1;  //! registered rs1
+  reg [4:0] r_rs1;  //! registered rs1
   reg [4:0] r_rs2;  //! registered rs2
 
   //! syn read with clk
