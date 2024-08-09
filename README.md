@@ -13,12 +13,12 @@
 |decode|:heart:|:heart:|:white_heart:|
 |execute|:heart:|:heart:|:white_heart:|
 |memory|:heart:|:heart:|:white_heart:|
-|writeback|:white_heart:|:white_heart:|:white_heart:|
+|writeback|:heart:|:white_heart:|:white_heart:|
 |<br>|
 |core|:white_heart:|:white_heart:|:white_heart:|
 |soc (top module)|:white_heart:|:white_heart:|:white_heart:|
 |<br>|
-|csr (ZICSR)|:white_heart:|:white_heart:|:white_heart:|
+|csr (ZICSR)|:heart:|:white_heart:|:white_heart:|
 |Integer Multiplication<br>and Division (M)|:white_heart:|:white_heart:|:white_heart:|
 |Bit Manipulation<br>and Division (B)|:white_heart:|:white_heart:|:white_heart:|
 
