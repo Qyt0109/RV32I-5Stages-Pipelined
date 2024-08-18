@@ -50,22 +50,45 @@ module csr #(
 
   wire [31:0] next_csr_data = {27'b0, execute_rs1};  //! unsigned immediate for immediate type of CSR instruction (new value to be stored to CSR)
 
-  //! CSR operation type
-  localparam CSRRW = 3'b001, CSRRS = 3'b010, CSRRC = 3'b011, CSRRWI = 3'b101, CSRRSI = 3'b110, CSRRCI = 3'b111;
+  // region CSR operation type
+  localparam CSRRW = 3'b001;
+  localparam CSRRS = 3'b010;
+  localparam CSRRC = 3'b011;
+  localparam CSRRWI = 3'b101;
+  localparam CSRRSI = 3'b110;
+  localparam CSRRCI = 3'b111;
+  // endregion CSR operation type
 
-  // CSR addresses
-  //machine info
-  localparam MVENDORID = 12'hF11, MARCHID = 12'hF12, MIMPID = 12'hF13, MHARTID = 12'hF14,
-  //machine trap setup
-  MSTATUS = 12'h300, MISA = 12'h301, MIE = 12'h304, MTVEC = 12'h305,
-  //machine trap handling
-  MSCRATCH = 12'h340, MEPC = 12'h341, MCAUSE = 12'h342, MTVAL = 12'h343, MIP = 12'h344,
-  //machine counters/timers
-  MCYCLE = 12'hB00, MCYCLEH = 12'hB80, MINSTRET = 12'hB02, MINSTRETH = 12'hBB2, MCOUNTINHIBIT = 12'h320;
+  // region CSR addresses
+  // machine info
+  localparam MVENDORID = 12'hF11;
+  localparam MARCHID = 12'hF12;
+  localparam MIMPID = 12'hF13;
+  localparam MHARTID = 12'hF14;
+
+  // machine trap setup
+  localparam MSTATUS = 12'h300;
+  localparam MISA = 12'h301;
+  localparam MIE = 12'h304;
+  localparam MTVEC = 12'h305;
+
+  // machine trap handling
+  localparam MSCRATCH = 12'h340;
+  localparam MEPC = 12'h341;
+  localparam MCAUSE = 12'h342;
+  localparam MTVAL = 12'h343;
+  localparam MIP = 12'h344;
+
+  // machine counters/timers
+  localparam MCYCLE = 12'hB00;
+  localparam MCYCLEH = 12'hB80;
+  localparam MINSTRET = 12'hB02;
+  localparam MINSTRETH = 12'hBB2;
+  localparam MCOUNTINHIBIT = 12'h320;
+  // endregion CSR addresses
 
   //mcause codes
   localparam MACHINE_SOFTWARE_INTERRUPT = 3, MACHINE_TIMER_INTERRUPT = 7, MACHINE_EXTERNAL_INTERRUPT = 11, INSTRUCTION_ADDRESS_MISALIGNED = 0, ILLEGAL_INSTRUCTION = 2, EBREAK = 3, LOAD_ADDRESS_MISALIGNED = 4, STORE_ADDRESS_MISALIGNED = 6, ECALL = 11;
-
 
   wire        opcode_store = execute_opcode_type[`STORE];
   wire        opcode_load = execute_opcode_type[`LOAD];
@@ -90,7 +113,7 @@ module csr #(
   reg         is_trap;
   wire        stall_bit = stall;
 
-  // CSR register bits
+  // region CSR register bits
   reg         mstatus_mie;  //! Machine Interrupt Enable
   reg         mstatus_mpie;  //! Machine Previous Interrupt Enable
   reg  [ 1:0] mstatus_mpp;  //! MPP
@@ -111,9 +134,10 @@ module csr #(
   reg  [63:0] minstret;  //! counts number instructions retired/executed by core
   reg         mcountinhibit_cy;  //! controls increment of mcycle
   reg         mcountinhibit_ir;  //! controls increment of minstret
+  // endregion CSR register bits
 
   //! control logic for load/store/instruction misaligned exception detection
-  always @* begin
+  always @* begin : exception_detection
     is_load_addr_misaligned = 0;
     is_store_addr_misaligned = 0;
     is_inst_addr_misaligned = 0;
@@ -144,30 +168,30 @@ module csr #(
   end
 
   //! control logic for writing to CSRs
-  always @(posedge clk, negedge rst) begin
+  always @(posedge clk, negedge rst) begin : write_csr
     if (!rst) begin
-      go_to_trap_q <= 0;
+      go_to_trap_q       <= 0;
       return_from_trap_q <= 0;
-      mstatus_mie <= 0;
-      mstatus_mpie <= 0;
-      mstatus_mpp <= 2'b11;
-      mie_meie <= 0;
-      mie_mtie <= 0;
-      mie_msie <= 0;
-      mtvec_base <= TRAP_ADDR[31:2];
-      mtvec_mode <= TRAP_ADDR[1:0];
-      mscratch <= 0;
-      mepc <= 0;
-      mcause_intbit <= 0;
-      mcause_code <= 0;
-      mtval <= 0;
-      mip_meip <= 0;
-      mip_meip <= 0;
-      mip_msip <= 0;
-      mcycle <= 0;
-      minstret <= 0;
-      mcountinhibit_cy <= 0;
-      mcountinhibit_ir <= 0;
+      mstatus_mie        <= 0;
+      mstatus_mpie       <= 0;
+      mstatus_mpp        <= 2'b11;
+      mie_meie           <= 0;
+      mie_mtie           <= 0;
+      mie_msie           <= 0;
+      mtvec_base         <= TRAP_ADDR[31:2];
+      mtvec_mode         <= TRAP_ADDR[1:0];
+      mscratch           <= 0;
+      mepc               <= 0;
+      mcause_intbit      <= 0;
+      mcause_code        <= 0;
+      mtval              <= 0;
+      mip_meip           <= 0;
+      mip_meip           <= 0;
+      mip_msip           <= 0;
+      mcycle             <= 0;
+      minstret           <= 0;
+      mcountinhibit_cy   <= 0;
+      mcountinhibit_ir   <= 0;
     end else if (!stall_bit) begin
       /***************************************************** CSR control logic *****************************************************/
       //MSTATUS (controls hart's current operating state (mie and mpie are the only configurable bits))
@@ -192,7 +216,6 @@ module csr #(
         end
       end
 
-
       // MIE (interrupt enable bits)
       if (execute_imm == MIE && csr_enable) begin
         mie_msie <= csr_in[3];
@@ -200,24 +223,18 @@ module csr #(
         mie_meie <= csr_in[11];
       end
 
-
       // MTVEC (trap vector configuration (base+mode))
       if (execute_imm == MTVEC && csr_enable) begin
         mtvec_base <= csr_in[31:2];
         mtvec_mode <= csr_in[1:0];
       end
 
-
       // MSCRATCH (dedicated for use by machine code)   
-      if (execute_imm == MSCRATCH && csr_enable) begin
-        mscratch <= csr_in;
-      end
-
+      if (execute_imm == MSCRATCH && csr_enable) mscratch <= csr_in;
 
       // MEPC (address of interrupted instruction)
-      if (execute_imm == MEPC && csr_enable) begin
-        mepc <= {csr_in[31:2], 2'b00};
-      end
+      if (execute_imm == MEPC && csr_enable) mepc <= {csr_in[31:2], 2'b00};
+
       /* Volume 2 pg. 38: When a trap is taken into M-mode, mepc is written with the virtual address of the 
              instruction that was interrupted or that encountered the exception */
       if (go_to_trap && !go_to_trap_q) mepc <= execute_pc;
@@ -261,11 +278,9 @@ module csr #(
         end
       end
 
-
       // MTVAL (exception-specific information to assist software in handling trap)
-      if (execute_imm == MTVAL && csr_enable) begin
-        mtval <= csr_in;
-      end
+      if (execute_imm == MTVAL && csr_enable) mtval <= csr_in;
+
       /*If mtval is written with a nonzero value when a breakpoint, address-misaligned, access-fault, or
             page-fault exception occurs on an instruction fetch, load, or store, then mtval will contain the
             faulting virtual address.*/
@@ -273,18 +288,13 @@ module csr #(
         if (is_load_addr_misaligned || is_store_addr_misaligned) mtval <= execute_result;
       end
 
-
       // MCYCLE (counts number of clk cycle executed by core [LOWER HALF])
-      if (execute_imm == MCYCLE && csr_enable) begin
-        mcycle[31:0] <= csr_in;
-      end
-
+      if (execute_imm == MCYCLE && csr_enable) mcycle[31:0] <= csr_in;
 
       // MCYCLEH (counts number of clk cycle executed by core [UPPER HALF])
-      if (execute_imm == MCYCLEH && csr_enable) begin
-        mcycle[63:32] <= csr_in;
-      end
-      mcycle   <= mcountinhibit_cy ? mcycle : mcycle + 1;  //increments mcycle every clock cycle
+      if (execute_imm == MCYCLEH && csr_enable) mcycle[63:32] <= csr_in;
+
+      mcycle   <= (mcountinhibit_cy) ? mcycle : mcycle + 1;  //increments mcycle every clock cycle
 
       //MTIME (real-time counter [millisecond increment])
       /* Volume 2 pg. 44: Platforms provide a real-time counter, exposed as a memory-mapped machine-mode
@@ -308,25 +318,18 @@ module csr #(
             timer_interrupt = (mtime >= mtimecmp)? 1:0;
             */
 
-
-
-      // MIP (pending interrupts)       
+      // MIP (pending interrupts)
       mip_msip <= software_interrupt;
       mip_mtip <= timer_interrupt;
       mip_meip <= external_interrupt;
 
+      // MINSTRET (counts number instructions retired/executed by core [upper half])
+      if (execute_imm == MINSTRET && csr_enable) minstret[31:0] <= csr_in;
 
-      // MINSTRET (counts number instructions retired/executed by core [upper half])       
-      if (execute_imm == MINSTRET && csr_enable) begin
-        minstret[31:0] <= csr_in;
-      end
+      // MINSTRETH (counts number instructions retired/executed by core [lower half])
+      if (execute_imm == MINSTRETH && csr_enable) minstret[63:32] <= csr_in;
 
-
-      // MINSTRETH (counts number instructions retired/executed by core [lower half])       
-      if (execute_imm == MINSTRETH && csr_enable) begin
-        minstret[63:32] <= csr_in;
-      end
-      minstret <= mcountinhibit_ir ? minstret : minstret + {63'b0, (minstret_inc && !go_to_trap_q && !return_from_trap_q)};  //increment minstret every instruction
+      minstret <= (mcountinhibit_ir) ? minstret : minstret + {63'b0, (minstret_inc && !go_to_trap_q && !return_from_trap_q)};  //increment minstret every instruction
 
 
       // MCOUNTINHIBIT (controls which hardware performance-monitoring counters can increment)
@@ -339,9 +342,9 @@ module csr #(
 
       /************************************** Registered Outputs for Trap Handlers ************************************************/
       if (clk_en) begin
-        go_to_trap_q <= go_to_trap;
+        go_to_trap_q       <= go_to_trap;
         return_from_trap_q <= return_from_trap;
-        return_address <= mepc;
+        return_address     <= mepc;
         /* Volume 2 pg. 30: When MODE=Direct (0), all traps into machine mode cause the execute_pc to be set to the address in the  
                  BASE field. When MODE=Vectored (1), all synchronous exceptions into machine mode cause the execute_pc to be set to the address 
                  in the BASE field, whereas interrupts cause the execute_pc to be set to the address in the BASE field plus four times the
@@ -353,37 +356,37 @@ module csr #(
 
         csr_out <= csr_data;
       end else begin  //THIS SOLVES THE PROBLEM OF FREERTOS NOT WORKING
-        go_to_trap_q <= 0;
+        go_to_trap_q       <= 0;
         return_from_trap_q <= 0;
       end
     end else begin
       // this CSR will always be updated
-      mcycle   <= mcountinhibit_cy ? mcycle : mcycle + 1;  //increments mcycle every clock cycle
-      minstret <= mcountinhibit_ir ? minstret : minstret + {63'b0, (minstret_inc && !go_to_trap_q && !return_from_trap_q)};  //increment minstret every instruction
+      mcycle   <= (mcountinhibit_cy) ? mcycle : mcycle + 1;  //increments mcycle every clock cycle
+      minstret <= (mcountinhibit_ir) ? minstret : minstret + {63'b0, (minstret_inc && !go_to_trap_q && !return_from_trap_q)};  //increment minstret every instruction
     end
   end
 
-  always @* begin
+  always @* begin : trap_detection
     /************************************************** control logic for trap detection **************************************************/
     external_interrupt_pending = 0;
     software_interrupt_pending = 0;
-    timer_interrupt_pending = 0;
-    is_interrupt = 0;
-    is_exception = 0;
-    is_trap = 0;
-    go_to_trap = 0;
-    return_from_trap = 0;
+    timer_interrupt_pending    = 0;
+    is_interrupt               = 0;
+    is_exception               = 0;
+    is_trap                    = 0;
+    go_to_trap                 = 0;
+    return_from_trap           = 0;
 
     if (clk_en) begin
       external_interrupt_pending = mstatus_mie && mie_meie && (mip_meip);  //machine_interrupt_enable + machine_external_interrupt_enable + machine_external_interrupt_pending must all be high
       software_interrupt_pending = mstatus_mie && mie_msie && mip_msip;  //machine_interrupt_enable + machine_software_interrupt_enable + machine_software_interrupt_pending must all be high
-      timer_interrupt_pending = mstatus_mie && mie_mtie && mip_mtip;  //machine_interrupt_enable + machine_timer_interrupt_enable + machine_timer_interrupt_pending must all be high
+      timer_interrupt_pending    = mstatus_mie && mie_mtie && mip_mtip;  //machine_interrupt_enable + machine_timer_interrupt_enable + machine_timer_interrupt_pending must all be high
 
-      is_interrupt = external_interrupt_pending || software_interrupt_pending || timer_interrupt_pending;
-      is_exception = (is_illegal_instr || is_inst_addr_misaligned || is_ecall_instr || is_ebreak_instr || is_load_addr_misaligned || is_store_addr_misaligned) && !writeback_change_pc;
-      is_trap = is_interrupt || is_exception;
-      go_to_trap = is_trap;  //a trap is taken, save execute_pc, and go to trap address
-      return_from_trap = is_mret_instr;  // return from trap, go back to saved execute_pc
+      is_interrupt               = external_interrupt_pending || software_interrupt_pending || timer_interrupt_pending;
+      is_exception               = (is_illegal_instr || is_inst_addr_misaligned || is_ecall_instr || is_ebreak_instr || is_load_addr_misaligned || is_store_addr_misaligned) && !writeback_change_pc;
+      is_trap                    = is_interrupt || is_exception;
+      go_to_trap                 = is_trap;  //a trap is taken, save execute_pc, and go to trap address
+      return_from_trap           = is_mret_instr;  // return from trap, go back to saved execute_pc
 
     end
     /*************************************************************************************************************************************/
@@ -395,19 +398,19 @@ module csr #(
     case (execute_imm)
       //machine info
       MVENDORID: csr_data = 32'h0;  //MVENDORID (JEDEC manufacturer ID)
-      MARCHID: csr_data = 32'h0;  //MARCHID (open-source project architecture ID allocated by RISC-V International  ( https://github.com/riscv/riscv-isa-manual/blob/master/marchid.md ))
-      MIMPID: csr_data = 32'h0;  //MIMPID (version of the processor implementation (provided by author of source code))
-      MHARTID: csr_data = 32'h0;  //MHARTID (integer ID of the hart that is currently running the code (one hart must have an ID of zero))             
+      MARCHID:   csr_data = 32'h0;  //MARCHID (open-source project architecture ID allocated by RISC-V International  ( https://github.com/riscv/riscv-isa-manual/blob/master/marchid.md ))
+      MIMPID:    csr_data = 32'h0;  //MIMPID (version of the processor implementation (provided by author of source code))
+      MHARTID:   csr_data = 32'h0;  //MHARTID (integer ID of the hart that is currently running the code (one hart must have an ID of zero))             
 
       //machine trap setup  
       MSTATUS: begin  //MSTATUS (controls hart's current operating state (mie and mpie are the only configurable bits))
-        csr_data[3] = mstatus_mie;
-        csr_data[7] = mstatus_mpie;
+        csr_data[3]     = mstatus_mie;
+        csr_data[7]     = mstatus_mpie;
         csr_data[12:11] = mstatus_mpp;  //MPP
       end
 
       MISA: begin  //MISA (control and monitor hart's current operating state)
-        csr_data[8] = 1'b1;  //RV32I/64I/128I base ISA (ISA supported by the hart)
+        csr_data[8]     = 1'b1;  //RV32I/64I/128I base ISA (ISA supported by the hart)
         csr_data[31:30] = 2'b01;  //Base 32
       end
 
