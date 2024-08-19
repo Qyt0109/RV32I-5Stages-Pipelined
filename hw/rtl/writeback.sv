@@ -7,7 +7,6 @@ module writeback (
     input [`OPCODE_WIDTH-1:0] memory_opcode_type, //! opcode type from previous stage (memory). Extract load or system opcode type to determine if this stage need to handle the instruction
 
     // region CRS Register operation
-    // TODO: do something with this signal when done with the ZICSR's CSR register
     input [31:0] csr_data,  //! CSR data to be loaded to base reg (ZICSR extension)
     // endregion CRS Register operation
 

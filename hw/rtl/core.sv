@@ -17,15 +17,15 @@ module core #(
     input         main_memory_instr_ack,   //! ack
 
     // Data Memory
-    output        wb_cyc,      //! bus cycle active (1 = normal operation, 0 = all ongoing transaction are to be cancelled)
-    output        wb_stb,      //! request for read/write access to data memory
-    output        wb_we,       //! write-enable (1 = write, 0 = read)
-    output [31:0] wb_addr,     //! address of data memory for store/load
-    output [31:0] wb_wr_data,  //! data to be stored to memory
-    output [ 3:0] wb_sel,      //! byte strobe for write (1 = write the byte) {byte3,byte2,byte1,byte0}
-    input         wb_ack,      //! ack by data memory (high when read data is ready or when write data is already written)
-    input         wb_stall,    //! stall by data memory
-    input  [31:0] wb_rd_data,  //! data retrieve from memory
+    output        main_memory_wb_cyc,      //! bus cycle active (1 = normal operation, 0 = all ongoing transaction are to be cancelled)
+    output        main_memory_wb_stb,      //! request for read/write access to data memory
+    output        main_memory_wb_wr_en,    //! write-enable (1 = write, 0 = read)
+    output [31:0] main_memory_wb_addr,     //! address of data memory for store/load
+    output [31:0] main_memory_wb_wr_data,  //! data to be stored to memory
+    output [ 3:0] main_memory_wb_wr_sel,   //! byte strobe for write (1 = write the byte) {byte3,byte2,byte1,byte0}
+    input         main_memory_wb_ack,      //! ack by data memory (high when read data is ready or when write data is already written)
+    input         main_memory_wb_stall,    //! stall by data memory
+    input  [31:0] main_memory_wb_rd_data,  //! data retrieve from memory
     // endregion main_memory
 
     // region Interrupts
@@ -81,8 +81,8 @@ module core #(
   wire [31:0] fetch_pc;  // PC value of current instruction
 
   // control from [STAGE 5 WRITEBACK]
-  wire        writeback_change_pc;  // high when pc needs to change (trap/return from trap)
-  wire [31:0] writeback_next_pc;  // next PC due to trap
+  //   wire        writeback_change_pc;  // high when pc needs to change (trap/return from trap)
+  //   wire [31:0] writeback_next_pc;  // next PC due to trap
 
   // control from [STAGE 3 EXECUTE]
   //   wire        execute_change_pc;  // high when pc needs to change (branch/jump)
@@ -91,7 +91,7 @@ module core #(
 
 
   // region Pipeline control
-  wire        stall_fetch;  //= (decode_stall || execute_stall);  // stall this stage
+  wire        stall_fetch = (decode_stall || execute_stall || memory_stall || writeback_stall);  // stall this stage
   //   wire        decode_flush;  // flush this stage
   wire        decode_clk_en;  // clk enable for pipeline stalling of next state ([STAGE 2 DECODE])
   // endregion Pipeline control
@@ -147,9 +147,9 @@ module core #(
   // region Pipeline control
   //   wire                        clk_en;  // control by previous stage ([STAGE 1 FETCH])
   wire                        execute_clk_en;  // clk enable for pipeline stalling of next state ([STAGE 3 EXECUTE])
-  wire                        stall_decode;  // stall this stage
+  wire                        stall_decode = (execute_stall || memory_stall || writeback_stall);  // stall this stage
   wire                        decode_stall;  // stalls the pipeline
-  wire                        execute_flush;  // flush this stage
+  //   wire                        execute_flush;  // flush this stage
   wire                        decode_flush;  // flushes previous stages
   // endregion Pipeline control
   decode decode_dut (
@@ -226,13 +226,13 @@ module core #(
 
   // region Pipeline control
   wire                        stall_from_execute;  // stall next stage ([STAGE 4 MEMORY] for load/store instructions)
-  wire                        clk_en;  // control by previous stage ([STAGE 2 DECODE])
-  wire                        next_clk_en;  // clk enable for pipeline stalling of next state ([STAGE 4 MEMORY])
-  wire                        stall;  // stall this stage
-  wire                        force_stall;  // force this stage to stall
-  wire                        next_stall;  // stalls the pipeline
-  wire                        flush;  // flush this stage
-  wire                        next_flush;  // flushes previous stages
+  //   wire                        clk_en;  // control by previous stage ([STAGE 2 DECODE])
+  wire                        memory_clk_en;  // clk enable for pipeline stalling of next state ([STAGE 4 MEMORY])
+  wire                        stall_execute = (memory_stall || writeback_stall);  // stall this stage
+  wire                        force_stall_execute;  // force this stage to stall
+  wire                        execute_stall;  // stalls the pipeline
+  //   wire                        memory_flush;  // flush this stage
+  wire                        execute_flush;  // flushes previous stages
   // endregion Pipeline control
 
   execute execute_dut (
@@ -277,15 +277,198 @@ module core #(
       .execute_rd_valid  (execute_rd_valid),
 
       .stall_from_execute(stall_from_execute),
-      .clk_en            (clk_en),
-      .next_clk_en       (next_clk_en),
-      .stall             (stall),
-      .force_stall       (force_stall),
-      .next_stall        (next_stall),
-      .flush             (flush),
-      .next_flush        (next_flush)
+      .clk_en            (execute_clk_en),
+      .next_clk_en       (memory_clk_en),
+      .stall             (stall_execute),
+      .force_stall       (force_stall_execute),
+      .next_stall        (execute_stall),
+      .flush             (memory_flush),
+      .next_flush        (execute_flush)
   );
   // endregion R execute
+
+  // region R memory
+  //   wire [             31:0] execute_rs2_data;  // Data to be stored to memory is always rs2 data
+  //   wire [             31:0] execute_result;  // Result from execute (load/store address)
+
+  //   wire [              2:0] execute_funct3;  // funct3 from previous stage [STAGE 3 EXECUTE]
+  wire [              2:0] memory_funct3;  // funct3 (byte, halfword, word store/load operation)
+
+  //   wire [`OPCODE_WIDTH-1:0] execute_opcode_type;  // opcode type from prev [STAGE 3 EXECUTE]
+  wire [`OPCODE_WIDTH-1:0] memory_opcode_type;  // opcode type
+
+  //   wire [             31:0] execute_pc;  // pc from previous stage (execute)
+  wire [             31:0] memory_pc;  // registered pc for this stage (memory)
+
+  // region Base Registers control
+  //   wire                     execute_rd_wr_en;  // enable write rd from previous stage (execute)
+  wire                     memory_rd_wr_en;  // write rd to the base reg if enabled
+  //   wire [              4:0] execute_rd;  // rd write address from previous stage (execute)
+  wire [              4:0] memory_rd;  // address for destination register
+  //   wire [             31:0] execute_rd_wr_data;  // rd write data from previous stage (execute)
+  wire [             31:0] memory_rd_wr_data;  // data to be written back to destination register
+  // endregion Base Registers control
+
+  // region Data Memory control
+  // bus cycle active (1 = normal operation, 0 = all ongoing transaction are to be cancelled)
+  //   wire                     main_memory_wb_cyc;
+  //   wire                     main_memory_wb_stb;  // request for read/write access to data memory
+  //   wire                     main_memory_wb_wr_en;  // write-enable (1 = write, 0 = read)
+  //   wire [             31:0] main_memory_wb_addr;  // data memory address
+  //   wire [             31:0] main_memory_wb_wr_data;  // data to be stored to memory
+  // byte select for write {byte3, byte2, byte1, byte0}
+  //   wire [              3:0] main_memory_wb_wr_sel;
+  // ack by data memory (high when data to be read is ready or when write data is already written)
+  //   wire                     main_memory_wb_ack;
+  //   wire                     main_memory_wb_stall;  // stall by data memory (1 = data memory is busy)
+  //   wire [             31:0] main_memory_wb_rd_data;  // data retrieve from data memory
+  // endregion Data Memory control
+
+  wire [             31:0] memory_data_load;  // data to be loaded to base reg (z-or-s extended)
+
+  // region Pipeline control
+  //   wire                     stall_from_execute;  // Execute tell to prepare to stall for load/store instruction
+  //   wire      clk_en;              // control by previous stage [STAGE 3 EXECUTE]
+  wire                     writeback_clk_en;  // clk enable for pipeline stalling
+  wire                     stall_memory = (writeback_stall);  // stall this stage
+  wire                     memory_stall;  // stalls the pipeline
+  //   wire                     writeback_flush;  // flush this stage
+  wire                     memory_flush;  // flushes previous stages
+  // endregion Pipeline control
+
+  memory memory_dut (
+      .clk(clk),
+      .rst(rst),
+
+      .execute_rs2_data(execute_rs2_data),
+      .execute_result  (execute_result),
+
+      .execute_funct3(execute_funct3),
+      .memory_funct3 (memory_funct3),
+
+      .execute_opcode_type(execute_opcode_type),
+      .memory_opcode_type (memory_opcode_type),
+
+      .execute_pc(execute_pc),
+      .memory_pc (memory_pc),
+
+      .execute_rd_wr_en(execute_rd_wr_en),
+      .memory_rd_wr_en (memory_rd_wr_en),
+
+      .execute_rd(execute_rd),
+      .memory_rd (memory_rd),
+
+      .execute_rd_wr_data(execute_rd_wr_data),
+      .memory_rd_wr_data (memory_rd_wr_data),
+
+      .main_memory_wb_cyc    (main_memory_wb_cyc),
+      .main_memory_wb_stb    (main_memory_wb_stb),
+      .main_memory_wb_wr_en  (main_memory_wb_wr_en),
+      .main_memory_wb_addr   (main_memory_wb_addr),
+      .main_memory_wb_wr_data(main_memory_wb_wr_data),
+      .main_memory_wb_wr_sel (main_memory_wb_wr_sel),
+      .main_memory_wb_ack    (main_memory_wb_ack),
+      .main_memory_wb_stall  (main_memory_wb_stall),
+      .main_memory_wb_rd_data(main_memory_wb_rd_data),
+
+      .memory_data_load(memory_data_load),
+
+      .stall_from_execute(stall_from_execute),
+      .clk_en            (memory_clk_en),
+      .next_clk_en       (writeback_clk_en),
+      .stall             (stall_memory),
+      .next_stall        (memory_stall),
+      .flush             (writeback_flush),
+      .next_flush        (memory_flush)
+  );
+  // endregion R memory
+
+  // region R writeback
+  //   wire [              2:0] memory_funct3;      // funct3 (byte, halfword, word store/load operation)asmndmabsmdmnasbdmasmdmamnsdmnasmndmnanmsdmnaabsdmnbamsdbmabsmndban
+  //   wire [             31:0] memory_data_load;   // data to be loaded to base reg (z-or-s extended)
+  //   wire [`OPCODE_WIDTH-1:0] memory_opcode_type; // opcode type from previous stage (memory). Extract load or system opcode type to determine if this stage need to handle the instruction
+
+  // region CRS Register operation
+  wire [31:0] csr_data;  // CSR data to be loaded to base reg (ZICSR extension)
+  // endregion CRS Register operation
+
+  // region Base reg control
+  //   wire             memory_rd_wr_en;      // enable write rd from previous stage (memory)
+  wire        writeback_rd_wr_en;  // write rd to the base reg if enabled
+  //   wire      [ 4:0] memory_rd;            // rd write address from previous stage (memory)
+  wire [ 4:0] writeback_rd;  // address for destination register
+  //   wire      [31:0] memory_rd_wr_data;    // rd write data from previous stage (memory)
+  wire [31:0] writeback_rd_wr_data;  // data to be written back to destination register
+  // endregion Base reg control
+
+  // region PC control
+  //   wire      [31:0] memory_pc;           // pc value from previous stage (memory)
+  wire [31:0] writeback_pc;  // new pc value
+  wire        writeback_change_pc;  // PC need to jump due to writeback
+  // endregion PC control
+
+  // region Trap handler
+  wire        go_to_trap;  // trap (exception/interrupt detected)
+  wire        return_from_trap;  // high before returning from trap (via mret)
+  wire [31:0] return_addr;  // mepc CSR
+  wire [31:0] trap_addr;  // mtvec CSR
+  // endregion Trap handler
+
+
+  // region Pipeline control
+  //   wire        clk_en;  // control by previous stage (memory)
+  wire        writeback_stall;  // stalls the pipeline
+  wire        writeback_flush;  // flushes previous stages
+  // endregion Pipeline control
+
+  writeback writeback_dut (
+      .memory_funct3     (memory_funct3),
+      .memory_data_load  (memory_data_load),
+      .memory_opcode_type(memory_opcode_type),
+
+      .csr_data(csr_data),
+
+      .memory_rd_wr_en   (memory_rd_wr_en),
+      .writeback_rd_wr_en(writeback_rd_wr_en),
+
+      .memory_rd   (memory_rd),
+      .writeback_rd(writeback_rd),
+
+      .memory_rd_wr_data   (memory_rd_wr_data),
+      .writeback_rd_wr_data(writeback_rd_wr_data),
+
+      .memory_pc          (memory_pc),
+      .writeback_pc       (writeback_pc),
+      .writeback_change_pc(writeback_change_pc),
+
+      .go_to_trap      (go_to_trap),
+      .return_from_trap(return_from_trap),
+      .return_addr     (return_addr),
+      .trap_addr       (trap_addr),
+
+      .clk_en   (writeback_clk_en),
+      .next_stall(writeback_stall),
+      .next_flush(writeback_flush)
+  );
+  // endregion R writeback
+
+  // region forward
+  
+  forward forward_dut (
+      .regs_rs1_rd_data(regs_rs1_rd_data),
+      .regs_rs2_rd_data(regs_rs2_rd_data),
+      .decode_r_rs1(decode_r_rs1),
+      .decode_r_rs2(decode_r_rs2),
+      .execute_force_stall(execute_force_stall),
+      .forward_rs1_data(forward_rs1_data),
+      .forward_rs2_data(forward_rs2_data),
+      .execute_rd(execute_rd),
+      .execute_rd_wr_en(execute_rd_wr_en),
+      .execute_rd_wr_data(execute_rd_wr_data),
+      .execute_rd_valid(execute_rd_valid),
+      .memory_clk_en(memory_clk_en)
+  );
+  // endregion forward
 
 
 endmodule
