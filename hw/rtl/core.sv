@@ -37,32 +37,35 @@ module core #(
 
   // region R regs
   // region control by [STAGE 2 DECODE]
-  wire        rs_rd_en;  // source registers read enable
-  wire [ 4:0] rs1;  // source register 1 address
-  wire [ 4:0] rs2;  // source register 2 address
+  wire        rs_rd_en = (decode_clk_en && (!decode_stall));  // source registers read enable
+  //   wire [ 4:0] rs1;  // source register 1 address
+  //   wire [ 4:0] rs2;  // source register 2 address
   // endregion control by [STAGE 2 DECODE]
 
   // region control by [STAGE 5 WRITEBACK]
-  wire [ 4:0] rd;  // destination register address
-  wire [31:0] rd_wr_data;  // data to be written to destination register
-  wire        rd_wr_en;  // destination register write enable
+  //   wire [ 4:0] rd;  // destination register address
+  //   wire [31:0] rd_wr_data;  // data to be written to destination register
+  //   wire        rd_wr_en;  // destination register write enable
   // endregion control by [STAGE 5 WRITEBACK]
 
-  wire [31:0] rs1_rd_data;  // source register 1 value
-  wire [31:0] rs2_rd_data;  // source register 2 value
+  wire [31:0] regs_rs1_rd_data;  // source register 1 value
+  wire [31:0] regs_rs2_rd_data;  // source register 2 value
 
 
   regs regs_dut (
       .clk(clk),
       .rst(rst),
+
       .rs_rd_en(rs_rd_en),
-      .rs1(rs1),
-      .rs2(rs2),
-      .rd(rd),
-      .rd_wr_data(rd_wr_data),
-      .rd_wr_en(rd_wr_en),
-      .rs1_rd_data(rs1_rd_data),
-      .rs2_rd_data(rs2_rd_data)
+      .rs1     (decode_rs1),
+      .rs2     (decode_rs2),
+
+      .rd        (writeback_rd),
+      .rd_wr_data(writeback_rd_wr_data),
+      .rd_wr_en  (writeback_rd_wr_en),
+
+      .rs1_rd_data(regs_rs1_rd_data),
+      .rs2_rd_data(regs_rs2_rd_data)
   );
   // endregion R regs
 
@@ -188,10 +191,10 @@ module core #(
   //   wire [                 4:0] decode_r_rs1;
   wire [                 4:0] execute_rs1;
 
-  wire [                31:0] forward_rs1_data;
+  //   wire [                31:0] forward_rs1_data;
   wire [                31:0] execute_rs1_data;
 
-  wire [                31:0] forward_rs2_data;
+  //   wire [                31:0] forward_rs2_data;
   wire [                31:0] execute_rs2_data;
 
   //   wire [                 4:0] decode_r_rd;
@@ -229,7 +232,7 @@ module core #(
   //   wire                        clk_en;  // control by previous stage ([STAGE 2 DECODE])
   wire                        memory_clk_en;  // clk enable for pipeline stalling of next state ([STAGE 4 MEMORY])
   wire                        stall_execute = (memory_stall || writeback_stall);  // stall this stage
-  wire                        force_stall_execute;  // force this stage to stall
+  //   wire                        force_stall_execute;  // force this stage to stall
   wire                        execute_stall;  // stalls the pipeline
   //   wire                        memory_flush;  // flush this stage
   wire                        execute_flush;  // flushes previous stages
@@ -426,7 +429,7 @@ module core #(
       .memory_data_load  (memory_data_load),
       .memory_opcode_type(memory_opcode_type),
 
-      .csr_data(csr_data),
+      .csr_data(csr_out),
 
       .memory_rd_wr_en   (memory_rd_wr_en),
       .writeback_rd_wr_en(writeback_rd_wr_en),
@@ -452,23 +455,123 @@ module core #(
   );
   // endregion R writeback
 
-  // region forward
-  
+  // region R forward
+  // current rs1 datas read from regs
+  //   wire [31:0] regs_rs1_rd_data;
+  // current rs2 datas read from regs
+  //   wire [31:0] regs_rs2_rd_data;
+
+  // rs1 addresses decoded from decode module [Decode]
+  input [4:0] decode_r_rs1;
+  // rs2 addresses decoded from decode module [Decode]
+  input [4:0] decode_r_rs2;
+
+  // force execute module [Execute] to be stalled
+  wire        force_stall_execute;
+
+  // Forwarding rs1 data to [Execute]
+  wire [31:0] forward_rs1_data;
+  // Forwarding rs2 data to [Execute]
+  wire [31:0] forward_rs2_data;
+
+  // [Execute/Memory] forwarding
+  input [4:0] execute_rd;  // rd address
+  input execute_rd_wr_en;  // high if want to write to rd address
+  input [31:0] execute_rd_wr_data;  // value to be written back to destination register
+  input execute_rd_valid;  // high if rd is already valid (not LOAD nor CSR instructions)
+  input memory_clk_en;  // memory_clk_en
+
+  // [Memory/Writeback] forwarding
+  input [4:0] memory_rd;  // rd address
+  input memory_rd_wr_en;  // high if want to write to rd address
+  input [31:0] writeback_rd_wr_data;  // value to be written back to destination register
+  input writeback_clk_en;  // memory_clk_en
+
   forward forward_dut (
       .regs_rs1_rd_data(regs_rs1_rd_data),
       .regs_rs2_rd_data(regs_rs2_rd_data),
+
       .decode_r_rs1(decode_r_rs1),
       .decode_r_rs2(decode_r_rs2),
-      .execute_force_stall(execute_force_stall),
+
+      .force_stall_execute(force_stall_execute),
+
       .forward_rs1_data(forward_rs1_data),
       .forward_rs2_data(forward_rs2_data),
-      .execute_rd(execute_rd),
-      .execute_rd_wr_en(execute_rd_wr_en),
+
+      .execute_rd        (execute_rd),
+      .execute_rd_wr_en  (execute_rd_wr_en),
       .execute_rd_wr_data(execute_rd_wr_data),
-      .execute_rd_valid(execute_rd_valid),
-      .memory_clk_en(memory_clk_en)
+      .execute_rd_valid  (execute_rd_valid),
+      .memory_clk_en     (memory_clk_en),
+
+      .memory_rd           (memory_rd),
+      .memory_rd_wr_en     (memory_rd_wr_en),
+      .writeback_rd_wr_data(writeback_rd_wr_data),
+      .writeback_clk_en    (writeback_clk_en)
   );
-  // endregion forward
+
+  // endregion R forward
+
+  // region csr
+  //   wire                     external_interrupt;
+  //   wire                     software_interrupt;
+  //   wire                     timer_interrupt;
+  wire        is_illegal_instr = execute_exception[`ILLEGAL];
+  wire        is_ecall_instr = execute_exception[`ECALL];
+  wire        is_ebreak_instr = execute_exception[`EBREAK];
+  wire        is_mret_instr = execute_exception[`MRET];
+  //   wire [`OPCODE_WIDTH-1:0] execute_opcode_type;
+  //   wire [             31:0] execute_result;
+  //   wire [              2:0] execute_funct3;
+  //   wire [             11:0] execute_imm;
+  //   wire [              4:0] execute_rs1;
+  //   wire [             31:0] execute_rs1_data;
+  wire [31:0] csr_out;
+  //   wire [             31:0] execute_pc;
+  //   wire                     writeback_change_pc;
+  wire [31:0] return_address;
+  wire [31:0] trap_address;
+  wire        go_to_trap_q;
+  wire        return_from_trap_q;
+  wire        minstret_inc = writeback_clk_en;
+  wire        csr_clk_en = memory_clk_en;
+  wire        stall_csr = (writeback_stall || memory_stall);
+
+  csr #(
+      .TRAP_ADDR(TRAP_ADDR)
+  ) csr_dut (
+      .clk(clk),
+      .rst(rst),
+
+      .external_interrupt(external_interrupt),
+      .software_interrupt(software_interrupt),
+      .timer_interrupt   (timer_interrupt),
+
+      .is_illegal_instr(is_illegal_instr),
+      .is_ecall_instr  (is_ecall_instr),
+      .is_ebreak_instr (is_ebreak_instr),
+      .is_mret_instr   (is_mret_instr),
+
+      .execute_opcode_type(execute_opcode_type),
+      .execute_result(execute_result),
+      .execute_funct3(execute_funct3),
+      .execute_imm(execute_imm),
+      .execute_rs1(execute_rs1),
+      .execute_rs1_data(execute_rs1_data),
+      .csr_out(csr_out),
+      .execute_pc(execute_pc),
+      .writeback_change_pc(writeback_change_pc),
+      .return_address(return_address),
+      .trap_address(trap_address),
+      .go_to_trap_q(go_to_trap_q),
+      .return_from_trap_q(return_from_trap_q),
+      .minstret_inc(minstret_inc),
+      .clk_en(csr_clk_en),
+      .stall(stall_csr)
+  );
+
+  // endregion csr
 
 
 endmodule
