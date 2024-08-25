@@ -38,8 +38,8 @@ module csr #(
     // Trap-Handler 
     input      [31:0] execute_pc,           //! Program Counter 
     input             writeback_change_pc,  //! high if writeback will issue change_pc (which will override this stage)
-    output reg [31:0] return_address,       //! mepc CSR
-    output reg [31:0] trap_address,         //! mtvec CSR
+    output reg [31:0] return_addr,       //! mepc CSR
+    output reg [31:0] trap_addr,         //! mtvec CSR
     output reg        go_to_trap_q,         //! high before going to trap (if exception/interrupt detected)
     output reg        return_from_trap_q,   //! high before returning from trap (via mret)
     input             minstret_inc,         //! increment minstret after executing an instruction
@@ -344,13 +344,13 @@ module csr #(
       if (clk_en) begin
         go_to_trap_q       <= go_to_trap;
         return_from_trap_q <= return_from_trap;
-        return_address     <= mepc;
+        return_addr     <= mepc;
         /* Volume 2 pg. 30: When MODE=Direct (0), all traps into machine mode cause the execute_pc to be set to the address in the  
                  BASE field. When MODE=Vectored (1), all synchronous exceptions into machine mode cause the execute_pc to be set to the address 
                  in the BASE field, whereas interrupts cause the execute_pc to be set to the address in the BASE field plus four times the
                  interrupt cause number */
-        if (mtvec_mode[1] && is_interrupt) trap_address <= {mtvec_base, 2'b00} + {28'b0, mcause_code << 2};
-        else trap_address <= {mtvec_base, 2'b00};
+        if (mtvec_mode[1] && is_interrupt) trap_addr <= {mtvec_base, 2'b00} + {28'b0, mcause_code << 2};
+        else trap_addr <= {mtvec_base, 2'b00};
 
         /****************************************************************************************************************************/
 

@@ -2,9 +2,8 @@
 `include "rv32i_header.vh"
 
 module core #(
-    parameter PC_RESET        = 0,
-    parameter TRAP_ADDR       = 0,
-    parameter ZICSR_EXTENSION = 1
+    parameter PC_RESET  = 0,
+    parameter TRAP_ADDR = 0
 ) (
     input clk,  //! positive edge triggered system clock
     input rst,  //! asynchronous reset
@@ -111,7 +110,7 @@ module core #(
       .main_memory_instr_ack (main_memory_instr_ack),
 
       .fetch_instr(fetch_instr),
-      .pc(fetch_pc),
+      .pc         (fetch_pc),
 
       .writeback_change_pc(writeback_change_pc),
       .writeback_next_pc  (writeback_next_pc),
@@ -410,12 +409,12 @@ module core #(
   wire        writeback_change_pc;  // PC need to jump due to writeback
   // endregion PC control
 
-  // region Trap handler
-  wire        go_to_trap;  // trap (exception/interrupt detected)
-  wire        return_from_trap;  // high before returning from trap (via mret)
-  wire [31:0] return_addr;  // mepc CSR
-  wire [31:0] trap_addr;  // mtvec CSR
-  // endregion Trap handler
+  // region Trap handler from csr
+  //   wire        go_to_trap;  // trap (exception/interrupt detected)
+  //   wire        return_from_trap;  // high before returning from trap (via mret)
+  //   wire [31:0] return_addr;  // mepc CSR
+  //   wire [31:0] trap_addr;  // mtvec CSR
+  // endregion Trap handler from csr
 
 
   // region Pipeline control
@@ -530,10 +529,10 @@ module core #(
   wire [31:0] csr_out;
   //   wire [             31:0] execute_pc;
   //   wire                     writeback_change_pc;
-  wire [31:0] return_address;
-  wire [31:0] trap_address;
-  wire        go_to_trap_q;
-  wire        return_from_trap_q;
+  wire [31:0] return_addr;
+  wire [31:0] trap_addr;
+  wire        go_to_trap;
+  wire        return_from_trap;
   wire        minstret_inc = writeback_clk_en;
   wire        csr_clk_en = memory_clk_en;
   wire        stall_csr = (writeback_stall || memory_stall);
@@ -562,10 +561,10 @@ module core #(
       .csr_out(csr_out),
       .execute_pc(execute_pc),
       .writeback_change_pc(writeback_change_pc),
-      .return_address(return_address),
-      .trap_address(trap_address),
-      .go_to_trap_q(go_to_trap_q),
-      .return_from_trap_q(return_from_trap_q),
+      .return_addr(return_addr),
+      .trap_addr(trap_addr),
+      .go_to_trap_q(go_to_trap),
+      .return_from_trap_q(return_from_trap),
       .minstret_inc(minstret_inc),
       .clk_en(csr_clk_en),
       .stall(stall_csr)

@@ -1,65 +1,64 @@
 module soc #(
     // main_memory
     parameter MEMORY_HEX   = "",
-    parameter MEMORY_DEPTH = 1024
+    parameter MEMORY_DEPTH = 1024,
+    parameter PC_RESET     = 0,
+    parameter TRAP_ADDR    = 0
 ) (
     input clk,
     input rst
 );
 
-  // region main_memory
-  // region control by [STAGE 1 FETCH]
   // Instruction Memory
-  wire [31:0] instr_addr;
-  wire [31:0] instr;
-  wire        instr_stb;
-  wire        instr_ack;
-  // endregion control by [STAGE 1 FETCH]
+  wire [31:0] main_memory_instr_addr;
+  wire [31:0] main_memory_instr;
+  wire        main_memory_instr_req;
+  wire        main_memory_instr_ack;
 
-  // region control by [STAGE 4 MEMORY]
   // Data Memory
+  wire        main_memory_wb_cyc;
+  wire        main_memory_wb_stb;
+  wire        main_memory_wb_wr_en;
+  wire [31:0] main_memory_wb_addr;
+  wire [31:0] main_memory_wb_wr_data;
+  wire [ 3:0] main_memory_wb_wr_sel;
+  wire        main_memory_wb_ack;
+  wire        main_memory_wb_stall;
+  wire [31:0] main_memory_wb_rd_data;
 
-  // bus cycle active (1 = normal operation, 0 = all ongoing transaction are to be cancelled)
-  wire        wb_cyc;
+  // Interrupts
+  wire        external_interrupt;  //! interrupt from external source
+  wire        software_interrupt;  //! interrupt from software (inter-processor interrupt)
+  wire        timer_interrupt;  //! interrupt from timer
 
-  wire        wb_stb;  // request for read/write access to data memory
-  wire        wb_wr_en;  // write-enable (1 = write, 0 = read)
-  wire [31:0] wb_addr;  // address of data memory for store/load
-  wire [31:0] wb_wr_data;  // data to be stored to memory
 
-  // byte strobe for write (1 = write the byte) {byte3, byte2, byte1, byte0}
-  wire [ 3:0] wb_wr_sel;
-
-  // ack by data memory (high when data to be read is ready or when write data is already written)
-  wire        wb_ack;
-
-  wire        wb_stall;  // stall by data memory
-  wire [31:0] wb_rd_data;  // data retrieved from memory
-  // endregion control by [STAGE 4 MEMORY]
-
-  main_memory #(
-      .MEMORY_HEX  (MEMORY_HEX),
-      .MEMORY_DEPTH(MEMORY_DEPTH)
-  ) main_memory_inst (
+  core #(
+      .PC_RESET (PC_RESET),
+      .TRAP_ADDR(TRAP_ADDR)
+  ) core_dut (
       .clk(clk),
+      .rst(rst),
 
-      // Instruction Memory
-      .instr_addr(instr_addr),
-      .instr     (instr),
-      .instr_stb (instr_stb),
-      .instr_ack (instr_ack),
+      .main_memory_instr_addr(main_memory_instr_addr),
+      .main_memory_instr     (main_memory_instr),
+      .main_memory_instr_req (main_memory_instr_req),
+      .main_memory_instr_ack (main_memory_instr_ack),
 
-      // Data Memory
-      .wb_cyc    (wb_cyc),
-      .wb_stb    (wb_stb),
-      .wb_wr_en  (wb_wr_en),
-      .wb_addr   (wb_addr),
-      .wb_wr_data(wb_wr_data),
-      .wb_wr_sel (wb_wr_sel),
-      .wb_ack    (wb_ack),
-      .wb_stall  (wb_stall),
-      .wb_rd_data(wb_rd_data)
+      .main_memory_wb_cyc    (main_memory_wb_cyc),
+      .main_memory_wb_stb    (main_memory_wb_stb),
+      .main_memory_wb_wr_en  (main_memory_wb_wr_en),
+      .main_memory_wb_addr   (main_memory_wb_addr),
+      .main_memory_wb_wr_data(main_memory_wb_wr_data),
+      .main_memory_wb_wr_sel (main_memory_wb_wr_sel),
+      .main_memory_wb_ack    (main_memory_wb_ack),
+      .main_memory_wb_stall  (main_memory_wb_stall),
+      .main_memory_wb_rd_data(main_memory_wb_rd_data),
+
+      // Interrupts
+      .external_interrupt(external_interrupt),
+      .software_interrupt(software_interrupt),
+      .timer_interrupt   (timer_interrupt)
   );
-  // endregion main_memory
+
 
 endmodule
