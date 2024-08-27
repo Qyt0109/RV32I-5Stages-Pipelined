@@ -35,7 +35,7 @@ module soc #(
   core #(
       .PC_RESET (PC_RESET),
       .TRAP_ADDR(TRAP_ADDR)
-  ) core_dut (
+  ) core_inst (
       .clk(clk),
       .rst(rst),
 
@@ -71,7 +71,7 @@ module soc #(
   wire        memory_wrapper_wb_stall;
   wire [31:0] memory_wrapper_wb_rd_data;
 
-  memory_wrapper memory_wrapper_dut (
+  memory_wrapper memory_wrapper_inst (
       .i_wb_cyc  (memory_wrapper_wb_cyc),
       .i_wb_stb  (memory_wrapper_wb_stb),
       .i_wb_we   (memory_wrapper_wb_wr_en),
@@ -107,7 +107,7 @@ module soc #(
   main_memory #(
       .MEMORY_HEX  (MEMORY_HEX),
       .MEMORY_BYTES(MEMORY_BYTES)
-  ) main_memory_dut (
+  ) main_memory_inst (
       .clk(clk),
 
       .instr_addr(main_memory_instr_addr),

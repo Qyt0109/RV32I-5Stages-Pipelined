@@ -1,0 +1,2 @@
+-I/Applications/CODESTUFF/RV32I/RV32I-Pipelined/hw/rtl -I/Applications/CODESTUFF/RISCV_Doc/RV32I/rtl --timing
+-I/Applications/CODESTUFF/GoldSeqHDL/pucch0/rtl -I/Applications/CODESTUFF/GoldSeqHDL/common -I/Applications/CODESTUFF/GoldSeqHDL/pucch1/rtl --timing

@@ -26,6 +26,10 @@
 # cat logs/execute.txt
 
 # memory
-compile_verilog rtl/decode.sv rtl/fetch.sv rtl/main_memory.sv rtl/regs.sv rtl/forward.sv rtl/execute.sv rtl/memory.sv tb/memory_tb.sv -DDETAILS -DINIT_MEM > logs/memory.txt
+# compile_verilog rtl/decode.sv rtl/fetch.sv rtl/main_memory.sv rtl/regs.sv rtl/forward.sv rtl/execute.sv rtl/memory.sv tb/memory_tb.sv -DDETAILS -DINIT_MEM > logs/memory.txt
 # compile_verilog rtl/decode.sv rtl/fetch.sv rtl/main_memory.sv rtl/regs.sv rtl/forward.sv rtl/execute.sv rtl/memory.sv tb/memory_tb.sv -DDETAILS > logs/memory.txt
-cat logs/memory.txt
+# cat logs/memory.txt
+
+# soc
+compile_verilog rtl/*.sv tb/soc_tb.sv > logs/soc.txt
+cat logs/soc.txt

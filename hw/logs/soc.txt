@@ -1,0 +1,169 @@
+[94m Auto compile verilog script[00m
+[96m by Dao Quyet[00m
+[93m No defines found (-D flags, EX: -DHELLO -DWORLD)[00m
+[95m File arguments list:[00m
+[95m rtl/core.sv[00m
+[95m rtl/csr.sv[00m
+[95m rtl/decode.sv[00m
+[95m rtl/execute.sv[00m
+[95m rtl/fetch.sv[00m
+[95m rtl/forward.sv[00m
+[95m rtl/main_memory.sv[00m
+[95m rtl/memory.sv[00m
+[95m rtl/memory_wrapper.sv[00m
+[95m rtl/regs.sv[00m
+[95m rtl/soc.sv[00m
+[95m rtl/writeback.sv[00m
+[95m tb/soc_tb.sv[00m
+[95m Included './rtl/core.sv'[00m
+[95m Included './rtl/csr.sv'[00m
+[95m Included './rtl/decode.sv'[00m
+[95m Included './rtl/execute.sv'[00m
+[95m Included './rtl/fetch.sv'[00m
+[95m Included './rtl/forward.sv'[00m
+[95m Included './rtl/main_memory.sv'[00m
+[95m Included './rtl/memory.sv'[00m
+[95m Included './rtl/memory_wrapper.sv'[00m
+[95m Included './rtl/regs.sv'[00m
+[95m Included './rtl/soc.sv'[00m
+[95m Included './rtl/writeback.sv'[00m
+[95m Included './tb/soc_tb.sv'[00m
+[96m iverilog command: iverilog -g2012 -o ./iverilog_output_file ./rtl/core.sv ./rtl/csr.sv ./rtl/decode.sv ./rtl/execute.sv ./rtl/fetch.sv ./rtl/forward.sv ./rtl/main_memory.sv ./rtl/memory.sv ./rtl/memory_wrapper.sv ./rtl/regs.sv ./rtl/soc.sv ./rtl/writeback.sv ./tb/soc_tb.sv[00m
+WARNING: ./rtl/main_memory.sv:215: $readmemh(./hexs/add.hex): Too many words in the file for the requested range [0:255].
+Init Memory from ./hexs/add.hex
+VCD info: dumpfile ./vcds/soc_tb.vcd opened for output.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[1] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[2] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[3] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[4] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[5] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[6] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[7] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[8] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[9] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[10] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[11] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[12] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[13] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[14] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[15] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[16] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[17] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[18] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[19] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[20] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[21] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[22] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[23] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[24] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[25] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[26] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[27] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[28] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[29] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[30] will conflict with an escaped identifier.
+VCD warning: array word soc_tb.uut.core_inst.regs_inst.x[31] will conflict with an escaped identifier.
+
+Start executing instructions......
+
+Monitor All Writes to Base Register and Data Memory
+time = 155000
+
+PC: 00000000    06400093 [ITYPE]
+  [BASEREG] address:0x1   value:0x00000064
+time = 165000
+
+PC: 00000004    09600113 [ITYPE]
+  [BASEREG] address:0x2   value:0x00000096
+time = 175000
+
+PC: 00000008    002081b3 [RTYPE]
+  [BASEREG] address:0x3   value:0x000000fa
+time = 185000
+
+PC: 0000000c    f6a00213 [ITYPE]
+  [BASEREG] address:0x4   value:0xffffff6a
+time = 195000
+
+PC: 00000010    001202b3 [RTYPE]
+  [BASEREG] address:0x5   value:0xffffffce
+time = 755000
+
+PC: 00000000    06400093 [ITYPE]
+  [BASEREG] address:0x1   value:0x00000064
+time = 765000
+
+PC: 00000004    09600113 [ITYPE]
+  [BASEREG] address:0x2   value:0x00000096
+time = 775000
+
+PC: 00000008    002081b3 [RTYPE]
+  [BASEREG] address:0x3   value:0x000000fa
+time = 785000
+
+PC: 0000000c    f6a00213 [ITYPE]
+  [BASEREG] address:0x4   value:0xffffff6a
+time = 795000
+
+PC: 00000010    001202b3 [RTYPE]
+  [BASEREG] address:0x5   value:0xffffffce
+time = 805000
+
+PC: 00000014    00220333 [RTYPE]
+  [BASEREG] address:0x6   value:0x00000000
+time = 815000
+
+PC: 00000018    00208033 [RTYPE]
+time = 825000
+
+PC: 0000001c    0fa00393 [ITYPE]
+  [BASEREG] address:0x7   value:0x000000fa
+time = 835000
+
+PC: 00000020    02038463 [BRANCH]
+time = 845000
+
+PC: 00000024    fce00413 [ITYPE]
+  [BASEREG] address:0x8   value:0xffffffce
+time = 855000
+
+PC: 00000028    02040063 [BRANCH]
+time = 905000
+
+PC: 00000048    00100513 [ITYPE]
+  [BASEREG] address:0x10   value:0x00000001
+time = 915000
+
+PC: 0000004c    05d00893 [ITYPE]
+  [BASEREG] address:0x17   value:0x0000005d
+
+All instructions executed......
+
+Final Register State:
+0x00: 0xxxxxxxxx	0x01: 0x00000064	0x02: 0x00000096	0x03: 0x000000fa	
+0x04: 0xffffff6a	0x05: 0xffffffce	0x06: 0x00000000	0x07: 0x000000fa	
+0x08: 0xffffffce	0x09: 0x00000000	0x10: 0x00000001	0x11: 0x00000000	
+0x12: 0x00000000	0x13: 0x00000000	0x14: 0x00000000	0x15: 0x00000000	
+0x16: 0x00000000	0x17: 0x0000005d	0x18: 0x00000000	0x19: 0x00000000	
+0x20: 0x00000000	0x21: 0x00000000	0x22: 0x00000000	0x23: 0x00000000	
+0x24: 0x00000000	0x25: 0x00000000	0x26: 0x00000000	0x27: 0x00000000	
+0x28: 0x00000000	0x29: 0x00000000	0x30: 0x00000000	0x31: 0x00000000	
+
+
+Final Memory State:
+0x1004: 0xxxxxxxxx
+0x1008: 0xxxxxxxxx
+0x100c: 0xxxxxxxxx
+0x1010: 0xxxxxxxxx
+0x1014: 0xxxxxxxxx
+0x1018: 0xxxxxxxxx
+0x101c: 0xxxxxxxxx
+0x1020: 0xxxxxxxxx
+0x1024: 0xxxxxxxxx
+0x1028: 0xxxxxxxxx
+
+[91mFAIL[00m: exit code = 0x00000000 
+[0 instructions in 0 clk cycles]
+
+./tb/soc_tb.sv:232: $finish called at 925000 (1ps)
+[92m COMPILED SUCCESSFULLY![00m

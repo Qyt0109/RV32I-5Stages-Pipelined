@@ -51,7 +51,7 @@ module core #(
   wire [31:0] regs_rs2_rd_data;  // source register 2 value
 
 
-  regs regs_dut (
+  regs regs_inst (
       .clk(clk),
       .rst(rst),
 
@@ -84,7 +84,7 @@ module core #(
 
   // control from [STAGE 5 WRITEBACK]
   //   wire        writeback_change_pc;  // high when pc needs to change (trap/return from trap)
-  //   wire [31:0] writeback_next_pc;  // next PC due to trap
+    wire [31:0] writeback_next_pc;  // next PC due to trap
 
   // control from [STAGE 3 EXECUTE]
   //   wire        execute_change_pc;  // high when pc needs to change (branch/jump)
@@ -100,7 +100,7 @@ module core #(
 
   fetch #(
       .PC_RESET(PC_RESET)
-  ) fetch_dut (
+  ) fetch_inst (
       .clk(clk),
       .rst(rst),
 
@@ -154,7 +154,7 @@ module core #(
   //   wire                        execute_flush;  // flush this stage
   wire                        decode_flush;  // flushes previous stages
   // endregion Pipeline control
-  decode decode_dut (
+  decode decode_inst (
       .clk(clk),
       .rst(rst),
 
@@ -237,7 +237,7 @@ module core #(
   wire                        execute_flush;  // flushes previous stages
   // endregion Pipeline control
 
-  execute execute_dut (
+  execute execute_inst (
       .clk(clk),
       .rst(rst),
 
@@ -338,7 +338,7 @@ module core #(
   wire                     memory_flush;  // flushes previous stages
   // endregion Pipeline control
 
-  memory memory_dut (
+  memory memory_inst (
       .clk(clk),
       .rst(rst),
 
@@ -423,7 +423,7 @@ module core #(
   wire        writeback_flush;  // flushes previous stages
   // endregion Pipeline control
 
-  writeback writeback_dut (
+  writeback writeback_inst (
       .memory_funct3     (memory_funct3),
       .memory_data_load  (memory_data_load),
       .memory_opcode_type(memory_opcode_type),
@@ -486,7 +486,7 @@ module core #(
   input [31:0] writeback_rd_wr_data;  // value to be written back to destination register
   input writeback_clk_en;  // memory_clk_en
 
-  forward forward_dut (
+  forward forward_inst (
       .regs_rs1_rd_data(regs_rs1_rd_data),
       .regs_rs2_rd_data(regs_rs2_rd_data),
 
@@ -539,7 +539,7 @@ module core #(
 
   csr #(
       .TRAP_ADDR(TRAP_ADDR)
-  ) csr_dut (
+  ) csr_inst (
       .clk(clk),
       .rst(rst),
 

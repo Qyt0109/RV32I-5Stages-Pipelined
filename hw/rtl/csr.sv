@@ -35,7 +35,7 @@ module csr #(
     output reg [31:0] csr_out,           //! CSR value to be loaded to basereg
     // region CSR instruction
 
-    // Trap-Handler 
+    // region Trap-Handler 
     input      [31:0] execute_pc,           //! Program Counter 
     input             writeback_change_pc,  //! high if writeback will issue change_pc (which will override this stage)
     output reg [31:0] return_addr,       //! mepc CSR
@@ -43,9 +43,12 @@ module csr #(
     output reg        go_to_trap_q,         //! high before going to trap (if exception/interrupt detected)
     output reg        return_from_trap_q,   //! high before returning from trap (via mret)
     input             minstret_inc,         //! increment minstret after executing an instruction
-    /// Pipeline Control ///
+    // endregion Trap-Handler 
+    // 
+    // region Pipeline Control
     input             clk_en,               //! input clk enable for pipeline stalling of this stage
     input             stall                 //! informs this stage to stall
+    // endregion Pipeline Control
 );
 
   wire [31:0] next_csr_data = {27'b0, execute_rs1};  //! unsigned immediate for immediate type of CSR instruction (new value to be stored to CSR)

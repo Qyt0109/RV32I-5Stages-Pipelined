@@ -540,7 +540,7 @@ module memory_tb ();
   // reg                         clk_en;
   wire                        memory_clk_en;
   wire                        stall_execute = (memory_stall);
-  // reg                         execute_force_stall = 0;
+  // reg                         force_stall_execute = 0;
   wire                        execute_stall;
   // reg                         memory_flush = 0;
   wire                        execute_flush;
@@ -591,7 +591,7 @@ module memory_tb ();
       .clk_en            (execute_clk_en),
       .next_clk_en       (memory_clk_en),
       .stall             (stall_execute),
-      .force_stall       (execute_force_stall),
+      .force_stall       (force_stall_execute),
       .next_stall        (execute_stall),
       .flush             (memory_flush),
       .next_flush        (execute_flush)
@@ -605,7 +605,7 @@ module memory_tb ();
   // reg [4:0] decode_r_rs1;
   // reg [4:0] decode_r_rs2;
 
-  wire        execute_force_stall;
+  wire        force_stall_execute;
 
   wire [31:0] forward_rs1_data;
   wire [31:0] forward_rs2_data;
@@ -623,7 +623,7 @@ module memory_tb ();
       .decode_r_rs1(decode_r_rs1),
       .decode_r_rs2(decode_r_rs2),
 
-      .execute_force_stall(execute_force_stall),
+      .force_stall_execute(force_stall_execute),
 
       .forward_rs1_data(forward_rs1_data),
       .forward_rs2_data(forward_rs2_data),
